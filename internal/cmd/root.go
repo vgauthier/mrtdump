@@ -12,7 +12,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mrtdump FILE",
-	Short: "mrtdump - A tool to display MRT binnary files",
+	Short: "mrtdump - A tool to export MRT binary files to human-readable format",
 	//Long: `A longer description `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
