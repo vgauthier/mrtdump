@@ -3,12 +3,18 @@
 ## Introduction 
 The Go implementation of bgpdump exports the binary MRT format to a human-readable format. The MRT format is used to export routing protocol messages, state changes, and contents of the routing information base. It is defined in [RFC6396](https://doi.org/10.17487/rfc6396).
 
+### Currently supported MRT types
+
 | Name            | Value | Is Implemented  |
 |-----------------|-------|-----------------|
 | TABLE\_DUMP     | 12    | No              |
 | TABLE\_DUMP\_V2 | 13    | Yes             |
 | BGP4MP          | 16    | No              |
 | BGP4MP\_ET      | 17    | No              |
+| ISIS            | 32    | No              |
+| ISIS_ET         | 33    | No              |
+| OSPFv3          | 48    | No              |  
+| OSPFv3_ET       | 49.   | No              |
 
 ## Licence
 Licensed under the Apache License, Version 2.0
