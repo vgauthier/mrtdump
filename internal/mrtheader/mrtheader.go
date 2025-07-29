@@ -2,10 +2,7 @@ package mrtheader
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
-	"io"
-	"os"
 	"slices"
 	"time"
 )
@@ -21,7 +18,7 @@ func NewMRTHeader() *MRTHeader {
 	return &MRTHeader{}
 }
 
-func (h *MRTHeader) Parse(f *os.File) (*MRTHeader, []byte, error) {
+func (h *MRTHeader) Parse(buf []byte) (*MRTHeader, error) {
 	// MRT Types
 	const (
 		OSPFv2        = 11
@@ -36,24 +33,21 @@ func (h *MRTHeader) Parse(f *os.File) (*MRTHeader, []byte, error) {
 	)
 	var mrtTypes = []uint16{OSPFv2, TABLE_DUMP, TABLE_DUMP_V2, BGP4MP, BGP4MP_ET, ISIS, ISIS_ET, OSPFv3, OSPFv3_ET}
 	var mrtTypesSupported = []uint16{TABLE_DUMP_V2}
-	err := binary.Read(f, binary.BigEndian, h)
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			os.Exit(0) // End of file reached, exit gracefully
-		}
-		return nil, nil, fmt.Errorf("failed to read header: %w", err)
+	if len(buf) < 12 {
+		return nil, fmt.Errorf("failed to read header - buffer too short: %d bytes", len(buf))
 	}
+	h.Ts = binary.BigEndian.Uint32(buf[0:4])
+	h.Type = binary.BigEndian.Uint16(buf[4:6])
+	h.Subtype = binary.BigEndian.Uint16(buf[6:8])
+	h.Length = binary.BigEndian.Uint32(buf[8:12])
+
 	if !slices.Contains(mrtTypes, h.Type) {
-		return nil, nil, fmt.Errorf("unknown MRT type: %d", h.Type)
+		return nil, fmt.Errorf("unknown MRT type: %d", h.Type)
 	}
 	if !slices.Contains(mrtTypesSupported, h.Type) {
-		return nil, nil, fmt.Errorf("MRT type %d not implemented", h.Type)
+		return nil, fmt.Errorf("MRT type %d not implemented", h.Type)
 	}
-	buf := make([]byte, h.Length)
-	if err = binary.Read(f, binary.BigEndian, &buf); err != nil {
-		return nil, nil, fmt.Errorf("failed to read packet: %w", err)
-	}
-	return h, buf, nil
+	return h, nil
 }
 
 func (h *MRTHeader) String() string {

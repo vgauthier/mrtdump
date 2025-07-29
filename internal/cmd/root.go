@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -17,8 +18,12 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+
 		if len(args) == 1 {
-			ReadFile(args[0]) // Call ReadFile with the provided filepath
+			configFS := os.DirFS(filepath.Dir(args[0])) // Use the directory of the provided file as the filesystem
+			// test if the file exists
+			rf := NewReadFileOptions(configFS, filepath.Base(args[0]))
+			rf.ReadFile() // Call ReadFile with the provided filepath
 		} else {
 			cmd.Help() // Display help if no subcommand is provided
 		}

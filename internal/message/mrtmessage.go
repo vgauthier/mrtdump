@@ -2,7 +2,6 @@ package message
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/vgauthier/mrtdump/internal/mrtheader"
 )
@@ -22,29 +21,19 @@ type typeTuple struct {
 	Subtype uint16
 }
 
-func NewMRTMessage() *MRTMessage {
-	return &MRTMessage{}
+func NewMRTMessage(header *mrtheader.MRTHeader) *MRTMessage {
+	return &MRTMessage{Type: header.Type, SubType: header.Subtype}
 }
 
 type MRTMessage struct {
-	header    *mrtheader.MRTHeader // MRT header
-	Type      uint16               // Type of the MRT message
-	SubType   uint16               // Subtype of the MRT message
-	Message   Message              // Generic message interface
-	Err       error                // Error if any occurred during parsing
-	PeerIndex *MRTPeerIndex        // Peer index from the MRT header
+	Type      uint16        // Type of the MRT message
+	SubType   uint16        // Subtype of the MRT message
+	Message   Message       // Generic message interface
+	Err       error         // Error if any occurred during parsing
+	PeerIndex *MRTPeerIndex // Peer index if applicable
 }
 
-func (m *MRTMessage) Parse(f *os.File) (*MRTMessage, error) {
-
-	header, buf, err := mrtheader.NewMRTHeader().Parse(f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse MRT header: %w", err)
-	}
-	// Process the message based on its type and subtype
-	m.header = header
-	m.Type = header.Type
-	m.SubType = header.Subtype
+func (m *MRTMessage) Parse(buf []byte) (*MRTMessage, error) {
 	switch (typeTuple{Type: m.Type, Subtype: m.SubType}) {
 	case typeTuple{TABLE_DUMP_V2, PEER_INDEX_TABLE}:
 		m.Message, m.Err = NewMRTPeerIndex().Read(buf)
@@ -52,17 +41,13 @@ func (m *MRTMessage) Parse(f *os.File) (*MRTMessage, error) {
 	case typeTuple{TABLE_DUMP_V2, RIB_IPV4_UNICAST}:
 		// Handle subtypes 2 RIB_IPV4_UNICAST
 		if m.PeerIndex == nil {
-			return nil, fmt.Errorf("peer index is required for RIB_IPV4_UNICAST")
+			m.Message, m.Err = NewTableDumpV2(RIB_IPV4_UNICAST).Read(buf)
+		} else {
+			m.Message, m.Err = NewTableDumpV2(RIB_IPV4_UNICAST).WithPeerIndex(m.PeerIndex).Read(buf)
 		}
-		m.Message, m.Err = NewTableDumpV2(RIB_IPV4_UNICAST).WithPeerIndex(m.PeerIndex).Read(buf)
 		return m, nil
 	}
-	return nil, fmt.Errorf("unsupported MRT type %d subtype %d", header.Type, header.Subtype)
-}
-
-func (m *MRTMessage) WithPeerIndex(peerIndex *MRTPeerIndex) *MRTMessage {
-	m.PeerIndex = peerIndex
-	return m
+	return nil, fmt.Errorf("unsupported MRT type %d subtype %d", m.Type, m.SubType)
 }
 
 func (m *MRTMessage) GetMessage() Message {
@@ -70,6 +55,13 @@ func (m *MRTMessage) GetMessage() Message {
 		return nil
 	}
 	return m.Message
+}
+
+func (m *MRTMessage) WithPeerIndex(peerIndex *MRTPeerIndex) *MRTMessage {
+	if peerIndex != nil {
+		m.PeerIndex = peerIndex
+	}
+	return m
 }
 
 func (m *MRTMessage) String() string {

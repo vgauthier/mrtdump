@@ -14,7 +14,7 @@ The Go implementation of bgpdump exports the binary MRT format to a human-readab
 | ISIS            | 32    | No              |
 | ISIS_ET         | 33    | No              |
 | OSPFv3          | 48    | No              |  
-| OSPFv3_ET       | 49.   | No              |
+| OSPFv3_ET       | 49    | No              |
 
 ## Licence
 Licensed under the Apache License, Version 2.0

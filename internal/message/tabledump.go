@@ -279,7 +279,6 @@ func (t *TableDumpV2) ReadEntries(buf []byte) (int, error) {
 		length, err := t.Entries[i].Read(buf[o:])
 		if err != nil {
 			fmt.Printf("Error reading RIB entry: %v\n", err)
-			//return length, fmt.Errorf("error reading RIB entry: %v", err)
 		}
 		o += length
 	}
