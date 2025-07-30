@@ -12,5 +12,14 @@ run: build
 	@echo "Running $(BINARY_NAME)-darwin-arm64..."
 	./$(BINARY_DIR)/$(BINARY_NAME)-darwin-arm64
 
+test:
+	@echo "Running tests..."
+	go test ./... -v
+
+coverage:
+	@echo "Running tests with coverage..."
+	go test ./... -coverprofile=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
+
 clean:
-	rm -rf $(BINARY_DIR)
+	rm -rf $(BINARY_DIR) *.out coverage.html
