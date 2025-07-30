@@ -74,7 +74,7 @@ func (r *RIBEntry) ReadLargeCommunities(bgpPathAttribute []byte) error {
 	// LARGE_COMMUNITIES is a variable-length field
 	// The first four bytes are the AS number
 	// The next four bytes are the community value
-	if len(bgpPathAttribute) < 12 {
+	if len(bgpPathAttribute) < 12 || len(bgpPathAttribute)%12 != 0 {
 		return fmt.Errorf("LARGE_COMMUNITIES: Invalid length")
 	}
 	r.LargeCommunities = []string{}
@@ -95,7 +95,7 @@ func (r *RIBEntry) ReadCommunities(bgpPathAttribute []byte) error {
 	// The first two bytes are the AS number
 	// The next two bytes are the community value
 	r.Communities = []string{}
-	if len(bgpPathAttribute) < 4 {
+	if len(bgpPathAttribute) < 4 || len(bgpPathAttribute)%4 != 0 {
 		return fmt.Errorf("COMMUNITIES: Invalid length")
 	}
 	communityCount := len(bgpPathAttribute) / 4 // Each community is 4 bytes
@@ -144,6 +144,9 @@ func (r *RIBEntry) ReadASPath(bgpPathAttribute []byte) error {
 	// The first byte is the segment type
 	// The second byte is the segment length
 	// The remaining bytes are the AS numbers
+	if len(bgpPathAttribute) < 6 {
+		return fmt.Errorf("AS_PATH: Invalid length")
+	}
 	//segmentType := bgpPathAttribute[0]
 	segmentLength := bgpPathAttribute[1]
 	o := 2 // Start after segment type and segment length
@@ -199,13 +202,14 @@ func (r *RIBEntry) Read(buf []byte) (int, error) {
 	// Attribute Length
 	attributeLength := binary.BigEndian.Uint16(buf[o : o+2])
 	o += 2
-	// BGP Path Attributes
+	// BGP Path Attributes buffer
 	bgpPathAttributes := buf[o : o+int(attributeLength)]
 	var attributesFlag byte
 	var attributesType byte
 	isExtLength := byte(0x10) // Extended Length flag
 	r.MultiExitDisc = -1
 	i := 0
+	// while loop to read BGP Path Attributes buffer
 	for i < len(bgpPathAttributes) {
 		attributesFlag = bgpPathAttributes[i]
 		attributesType = bgpPathAttributes[i+1]
@@ -219,7 +223,8 @@ func (r *RIBEntry) Read(buf []byte) (int, error) {
 		err := r.ReadAttributeByType(attributesType, bgpPathAttributes[i:i+int(r.AttributeLength)])
 		i += int(r.AttributeLength)
 		if err != nil {
-			return 0, err
+			// If an error occurs while reading an attribute, skip the rest of the attributes
+			return i, err
 		}
 	}
 	return o + int(attributeLength), nil
