@@ -7,6 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var SimpleRIBEntry = []byte{
+	0x00, 0x00, // PeerIndexId
+	0x00, 0x00, 0x00, 0x01, // Originated Time
+	0x00, 0x05, // Attributes Length
+	0x10,       // attributesFlag BEGIN Attribute 1
+	0x01,       // attributesType (ORIGIN)
+	0x00, 0x01, // Attribute Length
+	0x01, // BGP ORIGIN attribute (IGP)
+}
+
 func TestRIBEntry(t *testing.T) {
 	t.Run("Test attribute ReadOrigin", func(t *testing.T) {
 		ribEntry := &RIBEntry{}
@@ -114,16 +124,7 @@ func TestRIBEntry(t *testing.T) {
 	// Test reading a complete RIB entry
 	t.Run("Test RIBEntry Read", func(t *testing.T) {
 		ribEntry := &RIBEntry{}
-		buf := []byte{
-			0x00, 0x00, // PeerIndexId
-			0x00, 0x00, 0x00, 0x01, // Originated Time
-			0x00, 0x05, // Attributes Length
-			0x10,       // attributesFlag BEGIN Attribute 1
-			0x01,       // attributesType (ORIGIN)
-			0x00, 0x01, // Attribute Length
-			0x01, // BGP ORIGIN attribute (IGP)
-		}
-		_, err := ribEntry.Read(buf)
+		_, err := ribEntry.Read(SimpleRIBEntry)
 		assert.NoError(t, err, "RIBEntry Read should not return an error")
 		expected := "PeerIndexId: 0, OriginatedTime: 1970-01-01T01:00:01+01:00, NextHop: <nil>, Origin: EGP, ASPath: []"
 		assert.Equal(t, expected, ribEntry.String(), "RIBEntry String() should return the expected value")
