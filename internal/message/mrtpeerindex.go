@@ -40,29 +40,33 @@ func (h *MRTPeerIndex) Read(buf []byte) (Message, error) {
 	o += h.ViewNameLen
 	h.Nentries = binary.BigEndian.Uint16(buf[o : o+2])
 	o += 2
-	mrtPeerEntries := make([]MRTPeerEntry, h.Nentries)
+	h.Entries = make([]MRTPeerEntry, 0)
 	for i := 0; i < int(h.Nentries); i++ {
+		entry := MRTPeerEntry{}
+		if o >= uint16(len(buf)) {
+			return nil, fmt.Errorf("buffer too short for peer entry")
+		}
 		peerType := buf[o : o+1][0]
 		o += 1
-		mrtPeerEntries[i].BGPId = net.IP(buf[o : o+4])
+		entry.BGPId = net.IP(buf[o : o+4])
 		o += 4
 		if peerType&isIPv6 == isIPv6 {
-			mrtPeerEntries[i].PeerIP = net.IP(buf[o : o+16])
+			entry.PeerIP = net.IP(buf[o : o+16])
 			o += 16
 		} else {
-			mrtPeerEntries[i].PeerIP = net.IP(buf[o : o+4])
+			entry.PeerIP = net.IP(buf[o : o+4])
 			o += 4
 		}
 
 		if peerType&0x2 == 0x2 {
-			mrtPeerEntries[i].PeerAS = binary.BigEndian.Uint32(buf[o : o+4])
+			entry.PeerAS = binary.BigEndian.Uint32(buf[o : o+4])
 			o += 4
 		} else {
-			mrtPeerEntries[i].PeerAS = uint32(binary.BigEndian.Uint16(buf[o : o+2]))
+			entry.PeerAS = uint32(binary.BigEndian.Uint16(buf[o : o+2]))
 			o += 2
 		}
+		h.Entries = append(h.Entries, entry)
 	}
-	h.Entries = mrtPeerEntries
 	return h, nil
 }
 

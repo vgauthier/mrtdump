@@ -6,7 +6,7 @@ import (
 	"log"
 
 	me "github.com/vgauthier/mrtdump/internal/message"
-	"github.com/vgauthier/mrtdump/internal/mrtheader"
+	he "github.com/vgauthier/mrtdump/internal/mrtheader"
 )
 
 func NewReadFileOptions(fileSystem fs.FS, fileName string) *ReadFileOptions {
@@ -32,7 +32,7 @@ func (rf *ReadFileOptions) parseMessage(f fs.File) (*me.MRTMessage, error) {
 	}
 
 	// Parse the MRT header
-	header, err := mrtheader.NewMRTHeader().Parse(headerBuf)
+	header, err := he.NewMRTHeader().Parse(headerBuf)
 	if err != nil {
 		return nil, err
 	}
