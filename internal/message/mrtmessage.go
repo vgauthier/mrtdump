@@ -50,11 +50,14 @@ func (m *MRTMessage) Parse(buf []byte) (*MRTMessage, error) {
 	return nil, fmt.Errorf("unsupported MRT type %d subtype %d", m.Type, m.SubType)
 }
 
-func (m *MRTMessage) GetMessage() Message {
+func (m *MRTMessage) GetMessage() (Message, error) {
 	if m.Message == nil {
-		return nil
+		return nil, fmt.Errorf("no message available")
 	}
-	return m.Message
+	if m.Err != nil {
+		return nil, m.Err
+	}
+	return m.Message, nil
 }
 
 func (m *MRTMessage) WithPeerIndex(peerIndex *MRTPeerIndex) *MRTMessage {

@@ -95,7 +95,11 @@ func (rf *ReadFileOptions) ReadFile() {
 	if err != nil {
 		log.Fatalln(fmt.Errorf("failed to parse MRT message: %w", err))
 	}
-	rf.PeerIndex = peerIndex.GetMessage().(*me.MRTPeerIndex)
+	m, err := peerIndex.GetMessage()
+	if err != nil {
+		log.Fatalln(fmt.Errorf("failed to get MRT message: %w", err))
+	}
+	rf.PeerIndex = m.(*me.MRTPeerIndex)
 	fmt.Printf("%s\n", rf.PeerIndex.String())
 	// If the peer index is not nil, we can use it to parse subsequent messages
 	for i := 0; i < 2; i++ {
