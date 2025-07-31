@@ -47,7 +47,10 @@ func (t *TableDumpV2) Read(buf []byte) (Message, error) {
 	t.EntryCount = binary.BigEndian.Uint16(buf[o : o+2])
 	o += 2
 	// Extract the entries
-	t.ReadEntries(buf[o:])
+	_, err := t.ReadEntries(buf[o:])
+	if err != nil {
+		return nil, fmt.Errorf("error reading entries: %v", err)
+	}
 	return t, nil
 }
 
@@ -65,6 +68,9 @@ func (t *TableDumpV2) ReadEntries(buf []byte) (int, error) {
 	o := 0
 	t.Entries = make([]RIBEntry, t.EntryCount)
 	for i := 0; i < int(t.EntryCount); i++ {
+		if o >= len(buf) {
+			return o, fmt.Errorf("buffer overflow while reading RIB entries")
+		}
 		if t.PeerIndex != nil {
 			t.Entries[i].PeerIndex = t.PeerIndex
 		}
