@@ -10,11 +10,12 @@ import (
 	he "github.com/vgauthier/mrtdump/internal/mrtheader"
 )
 
-func NewReadFileOptions(fileSystem fs.FS, fileName string) *ReadFileOptions {
+func NewReadFileOptions(fileSystem fs.FS, fileName string, verboseFlag bool) *ReadFileOptions {
 	return &ReadFileOptions{
-		FileSystem: fileSystem,
-		FileName:   fileName,
-		PeerIndex:  nil, // Peer index can be set later if needed
+		FileSystem:  fileSystem,
+		FileName:    fileName,
+		PeerIndex:   nil,         // Peer index can be set later if needed
+		verboseFlag: verboseFlag, // Set verbose flag
 	}
 }
 
@@ -23,6 +24,7 @@ type ReadFileOptions struct {
 	FileName       string
 	PeerIndex      *me.MRTPeerIndex
 	FileDescriptor fs.File
+	verboseFlag    bool // Flag to enable verbose output
 }
 
 func (rf *ReadFileOptions) parseMessage(f fs.File) (*me.MRTMessage, error) {
@@ -103,7 +105,9 @@ func (rf *ReadFileOptions) ReadFile() error {
 		return fmt.Errorf("failed to get MRT message: %w", err)
 	}
 	rf.PeerIndex = m.(*me.MRTPeerIndex)
-	fmt.Printf("%s\n", rf.PeerIndex.String())
+	if rf.verboseFlag {
+		fmt.Printf("Parsed Peer Index: %s\n", rf.PeerIndex.String())
+	}
 	// If the peer index is not nil, we can use it to parse subsequent messages
 	for i := 0; i < 2; i++ {
 		rib, err := rf.parseMessage(rf.FileDescriptor)

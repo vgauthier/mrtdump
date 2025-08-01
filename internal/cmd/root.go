@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 
@@ -18,11 +19,12 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-
+		verboseFlag, _ := cmd.Flags().GetBool("verbose")
+		//log.Printf("mrtdump - A tool to export MRT binary files to human-readable format with flags: %v", verboseFlag)
 		if len(args) == 1 {
 			configFS := os.DirFS(filepath.Dir(args[0])) // Use the directory of the provided file as the filesystem
 			// test if the file exists
-			rf := NewReadFileOptions(configFS, filepath.Base(args[0]))
+			rf := NewReadFileOptions(configFS, filepath.Base(args[0]), verboseFlag)
 			rf.ReadFile() // Call ReadFile with the provided filepath
 		} else {
 			cmd.Help() // Display help if no subcommand is provided
@@ -35,7 +37,9 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		log.Fatal(err)
+	} else {
+		os.Exit(0) // Exit with success if no error occurred
 	}
 }
 
@@ -46,7 +50,6 @@ func init() {
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mrtdump.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// verboseFlag, _ := rootCmd.Flags().GetBool("verbose")
+	rootCmd.Flags().BoolP("verbose", "v", false, "Enable verbose output")
 }
