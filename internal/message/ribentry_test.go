@@ -51,7 +51,7 @@ func TestRIBEntry(t *testing.T) {
 		ribEntry := &RIBEntry{}
 		err := ribEntry.ReadAttributeByType(MULTI_EXIT_DISC, []byte{0x00, 0x00, 0x00, 0x01})
 		assert.NoError(t, err, "ReadMultiExitDisc should not return an error")
-		assert.Equal(t, int32(1), ribEntry.MultiExitDisc, "MultiExitDisc should be 1")
+		assert.Equal(t, int32(1), *ribEntry.MultiExitDisc, "MultiExitDisc should be 1")
 
 		// Test with a bad buffer
 		ribEntry = &RIBEntry{}

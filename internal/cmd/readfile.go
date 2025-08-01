@@ -90,13 +90,13 @@ func (rf *ReadFileOptions) readHeader(f fs.File) ([]byte, error) {
 }
 
 func (rf *ReadFileOptions) PrintMessage(message *me.MRTMessage) {
+	m, err := message.GetMessage()
 	if rf.jsonFlag {
-		m, err := message.GetMessage()
 		if err == nil {
 			fmt.Println(m.ToJSON())
 		}
 	} else {
-		fmt.Println(message.String())
+		fmt.Printf("%s", m.String())
 	}
 }
 
@@ -135,7 +135,8 @@ func (rf *ReadFileOptions) ReadFile() error {
 		if rib.Err != nil {
 			return fmt.Errorf("error parsing MRT message: %w", rib.Err)
 		} else {
-			fmt.Printf("%s", rib.Message.String())
+			rf.PrintMessage(rib)
+			//fmt.Printf("%s", rib.Message.String())
 		}
 	}
 	return nil

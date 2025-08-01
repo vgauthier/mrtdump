@@ -23,12 +23,12 @@ type RIBEntry struct {
 	PeerIndexId      uint16 // Peer index from the MRT header
 	OriginatedTime   uint32 // Unix timestamp in seconds
 	AttributeLength  uint16
-	LargeCommunities []string
-	Communities      []string
+	LargeCommunities []string // Optional: Large Communities
+	Communities      []string // Optional Communities associated with the entry
 	NextHop          net.IP
 	Origin           string
 	ASPath           []uint32
-	MultiExitDisc    int32
+	MultiExitDisc    *int32 // Optional: Multi Exit Discriminator nil if not set
 	Aggregator       string // Aggregator information
 }
 
@@ -52,8 +52,8 @@ func (r *RIBEntry) String() string {
 	sb.WriteString("\n")
 
 	sb.WriteString(fmt.Sprintf("NEXT_HOP: %s\n", r.NextHop.String()))
-	if r.MultiExitDisc != -1 {
-		sb.WriteString(fmt.Sprintf("MULTI_EXIT_DISC: %d\n", r.MultiExitDisc))
+	if r.MultiExitDisc != nil {
+		sb.WriteString(fmt.Sprintf("MULTI_EXIT_DISC: %d\n", *r.MultiExitDisc))
 	}
 	if len(r.Communities) > 0 {
 		sb.WriteString(fmt.Sprintf("COMMUNITIES: %v\n", strings.Trim(fmt.Sprintf("%v", r.Communities), "[]")))
@@ -73,7 +73,8 @@ func (r *RIBEntry) ReadMultiExitDisc(bgpPathAttribute []byte) error {
 	if len(bgpPathAttribute) < 4 {
 		return fmt.Errorf("MULTI_EXIT_DISC: Invalid length")
 	}
-	r.MultiExitDisc = int32(binary.BigEndian.Uint32(bgpPathAttribute[:4]))
+	r.MultiExitDisc = new(int32)
+	*r.MultiExitDisc = int32(binary.BigEndian.Uint32(bgpPathAttribute[:4]))
 	return nil
 }
 
@@ -214,7 +215,6 @@ func (r *RIBEntry) Read(buf []byte) (int, error) {
 	var attributesFlag byte
 	var attributesType byte
 	isExtLength := byte(0x10) // Extended Length flag
-	r.MultiExitDisc = -1
 	i := 0
 	// while loop to read BGP Path Attributes buffer
 	for i < len(bgpPathAttributes) {
