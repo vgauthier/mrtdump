@@ -21,8 +21,8 @@ func TestMRTMessage(t *testing.T) {
 		assert.NoError(t, err)
 
 		m, err := message.GetMessage()
-		assert.NotNil(t, m)
 		assert.NoError(t, err)
+		assert.NotNil(t, m)
 	})
 
 	t.Run("Test MRTMessage String", func(t *testing.T) {

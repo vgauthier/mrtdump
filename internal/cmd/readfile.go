@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"io/fs"
-	"log"
 
 	me "github.com/vgauthier/mrtdump/internal/message"
 	he "github.com/vgauthier/mrtdump/internal/mrtheader"
@@ -28,6 +29,9 @@ func (rf *ReadFileOptions) parseMessage(f fs.File) (*me.MRTMessage, error) {
 	// Read the MRT header
 	headerBuf, err := rf.readHeader(f)
 	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil, err // End of file reached, no more messages to read
+		}
 		return nil, err
 	}
 
@@ -80,24 +84,23 @@ func (rf *ReadFileOptions) readHeader(f fs.File) ([]byte, error) {
 	return buf, nil
 }
 
-func (rf *ReadFileOptions) ReadFile() {
+func (rf *ReadFileOptions) ReadFile() error {
 	// Open the file
 	var err error
 	rf.FileDescriptor, err = rf.FileSystem.Open(rf.FileName)
 	if err != nil {
-		log.Fatalln(err)
-		return
+		return fmt.Errorf("failed to open MRT file: %w", err)
 	}
 	defer rf.FileDescriptor.Close()
 
 	// Read the first message (peer index)
 	peerIndex, err := rf.parseMessage(rf.FileDescriptor)
 	if err != nil {
-		log.Fatalln(fmt.Errorf("failed to parse MRT message: %w", err))
+		return fmt.Errorf("failed to parse MRT message: %w", err)
 	}
 	m, err := peerIndex.GetMessage()
 	if err != nil {
-		log.Fatalln(fmt.Errorf("failed to get MRT message: %w", err))
+		return fmt.Errorf("failed to get MRT message: %w", err)
 	}
 	rf.PeerIndex = m.(*me.MRTPeerIndex)
 	fmt.Printf("%s\n", rf.PeerIndex.String())
@@ -105,13 +108,16 @@ func (rf *ReadFileOptions) ReadFile() {
 	for i := 0; i < 2; i++ {
 		rib, err := rf.parseMessage(rf.FileDescriptor)
 		if err != nil {
-			log.Fatalln(fmt.Errorf("failed to parse MRT: %w", err))
-			return
+			if errors.Is(err, io.EOF) {
+				break // No messages to read reached the end of the file
+			}
+			return fmt.Errorf("failed to parse MRT: %w", err)
 		}
 		if rib.Err != nil {
-			log.Fatalln(fmt.Errorf("error parsing MRT message: %w", rib.Err))
+			return fmt.Errorf("error parsing MRT message: %w", rib.Err)
 		} else {
 			fmt.Printf("%s\n", rib.Message.String())
 		}
 	}
+	return nil
 }
