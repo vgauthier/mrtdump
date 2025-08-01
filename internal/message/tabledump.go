@@ -115,10 +115,10 @@ func (t *TableDumpV2) ToJSON() string {
 			LargeCommunities: entry.LargeCommunities,
 			Aggregator:       entry.Aggregator,
 			MultiExitDisc:    entry.MultiExitDisc,
-		}, "", "    ")
+		}, "    ", "    ")
 		if err == nil {
 			jsonEntry.Write(b)
-			jsonEntry.WriteString(",\n")
+			jsonEntry.WriteString(",")
 		}
 	}
 	return jsonEntry.String()

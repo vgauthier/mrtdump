@@ -93,7 +93,7 @@ func (rf *ReadFileOptions) PrintMessage(message *me.MRTMessage) {
 	m, err := message.GetMessage()
 	if rf.jsonFlag {
 		if err == nil {
-			fmt.Println(m.ToJSON())
+			fmt.Printf("%s", m.ToJSON())
 		}
 	} else {
 		fmt.Printf("%s", m.String())
@@ -124,7 +124,11 @@ func (rf *ReadFileOptions) ReadFile() error {
 		fmt.Printf("Parsed Peer Index: %s\n", rf.PeerIndex.String())
 	}
 	// If the peer index is not nil, we can use it to parse subsequent messages
+	if rf.jsonFlag {
+		fmt.Println("[") // Start JSON array if jsonFlag is set
+	}
 	for i := 0; i < 2; i++ {
+		// Read the next message
 		rib, err := rf.parseMessage(rf.FileDescriptor)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
@@ -137,6 +141,9 @@ func (rf *ReadFileOptions) ReadFile() error {
 		} else {
 			rf.PrintMessage(rib)
 		}
+	}
+	if rf.jsonFlag {
+		fmt.Println("\n]")
 	}
 	return nil
 }
