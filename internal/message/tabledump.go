@@ -118,7 +118,7 @@ func (t *TableDumpV2) ToJSON() string {
 		}, "    ", "    ")
 		if err == nil {
 			jsonEntry.Write(b)
-			jsonEntry.WriteString(",")
+			jsonEntry.WriteString(",\n    ")
 		}
 	}
 	return jsonEntry.String()

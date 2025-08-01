@@ -16,6 +16,14 @@ The Go implementation of bgpdump exports the binary MRT format to a human-readab
 | OSPFv3          | 48    | No              |  
 | OSPFv3_ET       | 49    | No              |
 
+## TODOs
+* Remove the PeerIndex from the rib entry struct
+* Implement CVS print option
+* Change the function ToJSON print from a struct to map
+* Implement a read from bzip, zip and gz file
+* Add option to output to a file
+
+
 ## Licence
 Licensed under the Apache License, Version 2.0
 Copyright (C) 2025 Vincent Gauthier

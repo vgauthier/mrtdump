@@ -125,7 +125,7 @@ func (rf *ReadFileOptions) ReadFile() error {
 	}
 	// If the peer index is not nil, we can use it to parse subsequent messages
 	if rf.jsonFlag {
-		fmt.Println("[") // Start JSON array if jsonFlag is set
+		fmt.Printf("[\n    ") // Start JSON array if jsonFlag is set
 	}
 	for i := 0; i < 2; i++ {
 		// Read the next message
