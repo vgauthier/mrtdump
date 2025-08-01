@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 )
 
 type TableDumpV2 struct {
@@ -12,6 +13,7 @@ type TableDumpV2 struct {
 	Timestamp      int32         // Unix timestamp in seconds
 	Type           uint16
 	Subtype        uint16
+	TypeName       string // Name of the type
 	Length         uint32
 	SequenceNumber uint32 // Sequence number of the RIB entry
 	PrefixLen      byte   // Length of the prefix
@@ -56,10 +58,13 @@ func (t *TableDumpV2) Read(buf []byte) (Message, error) {
 
 func (t *TableDumpV2) String() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("TableDumpV2 SeqNumber: %d, PrefixLen: %d, Prefix: %s/%d, EntryCount: %d \n",
-		t.SequenceNumber, t.PrefixLen, t.Prefix, t.PrefixLen, t.EntryCount))
 	for _, entry := range t.Entries {
+		sb.WriteString(fmt.Sprintf("TIME: %s\n", time.Unix(int64(t.Timestamp), 0).Format(time.RFC3339)))
+		sb.WriteString(fmt.Sprintf("TYPE: %s\n", t.TypeName))
+		sb.WriteString(fmt.Sprintf("PREFIX: %s/%d\n", t.Prefix, t.PrefixLen))
+		sb.WriteString(fmt.Sprintf("SEQUENCE: %d\n", t.SequenceNumber))
 		sb.WriteString(fmt.Sprintf("%s\n", entry.String()))
+		//sb.WriteString("\n")
 	}
 	return sb.String()
 }
@@ -89,8 +94,12 @@ func (t *TableDumpV2) WithPeerIndex(peerIndex *MRTPeerIndex) *TableDumpV2 {
 }
 
 func NewTableDumpV2(subType uint16) *TableDumpV2 {
+	if subType != RIB_IPV4_UNICAST {
+		return nil
+	}
 	return &TableDumpV2{
-		Subtype: subType,
-		Type:    TABLE_DUMP_V2,
+		Subtype:  subType,
+		Type:     TABLE_DUMP_V2,
+		TypeName: "TABLE_DUMP_V2/IPV4_UNICAST",
 	}
 }

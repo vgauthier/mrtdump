@@ -36,26 +36,33 @@ func (r *RIBEntry) String() string {
 	var sb strings.Builder
 
 	if r.PeerIndex != nil {
-		sb.WriteString(fmt.Sprintf("Peer AS: %v, ", r.PeerIndex.Entries[r.PeerIndexId].PeerAS))
-		sb.WriteString(fmt.Sprintf("Peer IP: %s, ", r.PeerIndex.Entries[r.PeerIndexId].PeerIP.String()))
+		sb.WriteString(fmt.Sprintf("FROM: %s AS%d\n",
+			r.PeerIndex.Entries[r.PeerIndexId].PeerIP,
+			r.PeerIndex.Entries[r.PeerIndexId].PeerAS))
 	} else {
-		sb.WriteString(fmt.Sprintf("PeerIndexId: %d, ", r.PeerIndexId))
+		sb.WriteString(fmt.Sprintf("PeerIndexId: %d\n", r.PeerIndexId))
 	}
-	sb.WriteString(fmt.Sprintf("OriginatedTime: %s, ", time.Unix(int64(r.OriginatedTime), 0).Format(time.RFC3339)))
-	sb.WriteString(fmt.Sprintf("NextHop: %s, ", r.NextHop))
-	sb.WriteString(fmt.Sprintf("Origin: %s, ", r.Origin))
-	sb.WriteString(fmt.Sprintf("ASPath: %v", r.ASPath))
+	sb.WriteString(fmt.Sprintf("ORIGINATED: %s\n", time.Unix(int64(r.OriginatedTime), 0).Format(time.RFC3339)))
+	sb.WriteString(fmt.Sprintf("ORIGIN: %s\n", r.Origin))
+
+	sb.WriteString("ASPATH: ")
+	for _, asn := range r.ASPath {
+		sb.WriteString(fmt.Sprintf("AS%d ", asn))
+	}
+	sb.WriteString("\n")
+
+	sb.WriteString(fmt.Sprintf("NEXT_HOP: %s\n", r.NextHop.String()))
 	if r.MultiExitDisc != -1 {
-		sb.WriteString(fmt.Sprintf(", MultiExitDisc: %d", r.MultiExitDisc))
+		sb.WriteString(fmt.Sprintf("MULTI_EXIT_DISC: %d\n", r.MultiExitDisc))
 	}
 	if len(r.Communities) > 0 {
-		sb.WriteString(fmt.Sprintf(", Communities: %v", r.Communities))
+		sb.WriteString(fmt.Sprintf("COMMUNITIES: %v\n", strings.Trim(fmt.Sprintf("%v", r.Communities), "[]")))
 	}
 	if len(r.LargeCommunities) > 0 {
-		sb.WriteString(fmt.Sprintf(", LargeCommunities: %v", r.LargeCommunities))
+		sb.WriteString(fmt.Sprintf("LARGE_COMMUNITIES: %v\n", strings.Trim(fmt.Sprintf("%v", r.LargeCommunities), "[]")))
 	}
 	if len(r.Aggregator) > 0 {
-		sb.WriteString(fmt.Sprintf(", Aggregator: %s", r.Aggregator))
+		sb.WriteString(fmt.Sprintf("AGGREGATOR: %s\n", r.Aggregator))
 	}
 	return sb.String()
 }
