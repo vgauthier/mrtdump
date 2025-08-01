@@ -155,7 +155,6 @@ func (r *RIBEntry) ReadASPath(bgpPathAttribute []byte) error {
 	if len(bgpPathAttribute) < 6 {
 		return fmt.Errorf("AS_PATH: Invalid length")
 	}
-	//segmentType := bgpPathAttribute[0]
 	segmentLength := bgpPathAttribute[1]
 	o := 2 // Start after segment type and segment length
 	for i := 0; i < int(segmentLength); i++ {

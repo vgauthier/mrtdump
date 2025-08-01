@@ -136,7 +136,6 @@ func (rf *ReadFileOptions) ReadFile() error {
 			return fmt.Errorf("error parsing MRT message: %w", rib.Err)
 		} else {
 			rf.PrintMessage(rib)
-			//fmt.Printf("%s", rib.Message.String())
 		}
 	}
 	return nil
