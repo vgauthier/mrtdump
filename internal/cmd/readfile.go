@@ -10,12 +10,13 @@ import (
 	he "github.com/vgauthier/mrtdump/internal/mrtheader"
 )
 
-func NewReadFileOptions(fileSystem fs.FS, fileName string, verboseFlag bool) *ReadFileOptions {
+func NewReadFileOptions(fileSystem fs.FS, fileName string, verboseFlag bool, jsonFlag bool) *ReadFileOptions {
 	return &ReadFileOptions{
 		FileSystem:  fileSystem,
 		FileName:    fileName,
 		PeerIndex:   nil,         // Peer index can be set later if needed
 		verboseFlag: verboseFlag, // Set verbose flag
+		jsonFlag:    jsonFlag,    // Set JSON flag
 	}
 }
 
@@ -25,8 +26,10 @@ type ReadFileOptions struct {
 	PeerIndex      *me.MRTPeerIndex
 	FileDescriptor fs.File
 	verboseFlag    bool // Flag to enable verbose output
+	jsonFlag       bool // Flag to enable JSON output
 }
 
+// parseMessage reads and parses a single MRT message from the file descriptor.
 func (rf *ReadFileOptions) parseMessage(f fs.File) (*me.MRTMessage, error) {
 	// Read the MRT header
 	headerBuf, err := rf.readHeader(f)
@@ -86,6 +89,18 @@ func (rf *ReadFileOptions) readHeader(f fs.File) ([]byte, error) {
 	return buf, nil
 }
 
+func (rf *ReadFileOptions) PrintMessage(message *me.MRTMessage) {
+	if rf.jsonFlag {
+		m, err := message.GetMessage()
+		if err == nil {
+			fmt.Println(m.ToJSON())
+		}
+	} else {
+		fmt.Println(message.String())
+	}
+}
+
+// Main function to read the MRT file and parse the messages
 func (rf *ReadFileOptions) ReadFile() error {
 	// Open the file
 	var err error

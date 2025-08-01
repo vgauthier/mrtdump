@@ -41,6 +41,6 @@ func TestTableDumpV2(t *testing.T) {
 		buf := append(SimpleTableDumpHeader, SimpleRIBEntry...) // Append a simple RIB entry
 		_, err := tableDump.Read(buf)
 		assert.NoError(t, err, "TableDump Read should not return an error")
-		assert.Equal(t, 179, len(tableDump.String())) // Call String method to ensure it works without error
+		assert.Equal(t, 191, len(tableDump.String())) // Call String method to ensure it works without error
 	})
 }

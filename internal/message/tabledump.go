@@ -1,12 +1,34 @@
 package message
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"net"
 	"strings"
 	"time"
 )
+
+type From struct {
+	PeerIP string // IP address of the peer
+	PeerAS uint32 // AS number of the peer
+}
+
+type TableDumpV2Json struct {
+	Datetime    string   `json:"datetime"` // Timestamp in RFC3339 format
+	Type        uint16   `json:"type"`
+	Subtype     uint16   `json:"subtype"`
+	Prefix      string   `json:"prefix"`     // network prefix
+	PrefixLen   uint8    `json:"prefix_len"` // Length of the prefix
+	Sequence    uint32   `json:"sequence"`   // Sequence number of the RIB entry
+	Originated  string   `json:"originated"` // Time when the entry was originated in RFC3339 format
+	Origin      string   `json:"origin"`     // Origin of the entry
+	ASPath      []uint32 `json:"as_path"`    // AS Path
+	From        From     `json:"from"`       // Information about the peer
+	NextHop     string   `json:"next_hop"`   // Next hop IP address
+	Communities []string // Communities associated with the entry
+}
 
 type TableDumpV2 struct {
 	PeerIndex      *MRTPeerIndex // Peer index from the MRT header
@@ -64,9 +86,36 @@ func (t *TableDumpV2) String() string {
 		sb.WriteString(fmt.Sprintf("PREFIX: %s/%d\n", t.Prefix, t.PrefixLen))
 		sb.WriteString(fmt.Sprintf("SEQUENCE: %d\n", t.SequenceNumber))
 		sb.WriteString(fmt.Sprintf("%s\n", entry.String()))
-		//sb.WriteString("\n")
 	}
 	return sb.String()
+}
+
+func (t *TableDumpV2) ToJSON() string {
+	var jsonEntry bytes.Buffer
+	for _, entry := range t.Entries {
+		b, err := json.Marshal(TableDumpV2Json{
+			Datetime:   time.Unix(int64(t.Timestamp), 0).Format(time.RFC3339),
+			Type:       t.Type,
+			Subtype:    t.Subtype,
+			Prefix:     t.Prefix.String(),
+			PrefixLen:  t.PrefixLen,
+			Sequence:   t.SequenceNumber,
+			Originated: time.Unix(int64(entry.OriginatedTime), 0).Format(time.RFC3339),
+			ASPath:     entry.ASPath,
+			From: From{
+				PeerIP: entry.PeerIndex.Entries[entry.PeerIndexId].PeerIP.String(),
+				PeerAS: entry.PeerIndex.Entries[entry.PeerIndexId].PeerAS,
+			},
+			NextHop:     entry.NextHop.String(),
+			Communities: entry.Communities,
+			Origin:      entry.Origin,
+		})
+		if err == nil {
+			jsonEntry.Write(b)
+		}
+
+	}
+	return jsonEntry.String()
 }
 
 func (t *TableDumpV2) ReadEntries(buf []byte) (int, error) {

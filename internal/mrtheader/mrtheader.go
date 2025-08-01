@@ -53,3 +53,7 @@ func (h *MRTHeader) Parse(buf []byte) (*MRTHeader, error) {
 func (h *MRTHeader) String() string {
 	return fmt.Sprintf("MRTHeader Ts: %v, Type: %d, Subtype: %d, Length: %d", time.Unix(int64(h.Ts), 0), h.Type, h.Subtype, h.Length)
 }
+
+func (h *MRTHeader) ToJSON() string {
+	return "not implemented"
+}

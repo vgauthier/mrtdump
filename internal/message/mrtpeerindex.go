@@ -81,6 +81,10 @@ func (h *MRTPeerIndex) String() string {
 	return output.String()
 }
 
+func (h *MRTPeerIndex) ToJSON() string {
+	return "To JSON not implemented for MRTPeerIndex"
+}
+
 func NewMRTPeerIndex() *MRTPeerIndex {
 	return &MRTPeerIndex{}
 }

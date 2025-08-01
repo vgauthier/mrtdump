@@ -51,7 +51,7 @@ func TestReadFileOptions(t *testing.T) {
 		"test.mrt": {Data: buf},
 	}
 	t.Run("Test NewReadFileOptions", func(t *testing.T) {
-		ro := NewReadFileOptions(fs, "test.mrt", false)
+		ro := NewReadFileOptions(fs, "test.mrt", false, false)
 		assert.NotNil(t, ro)
 
 		err := ro.ReadFile()
