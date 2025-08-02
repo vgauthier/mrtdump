@@ -88,7 +88,46 @@ func (t *TableDumpV2) String() string {
 		sb.WriteString(fmt.Sprintf("TYPE: %s\n", t.TypeName))
 		sb.WriteString(fmt.Sprintf("PREFIX: %s/%d\n", t.Prefix, t.PrefixLen))
 		sb.WriteString(fmt.Sprintf("SEQUENCE: %d\n", t.SequenceNumber))
-		sb.WriteString(fmt.Sprintf("%s\n", entry.String()))
+
+		if t.PeerIndex != nil {
+			sb.WriteString(fmt.Sprintf("FROM: %s AS%d\n",
+				t.PeerIndex.Entries[entry.PeerIndexId].PeerIP,
+				t.PeerIndex.Entries[entry.PeerIndexId].PeerAS))
+		} else {
+			sb.WriteString(fmt.Sprintf("PeerIndexId: %d\n", entry.PeerIndexId))
+		}
+		sb.WriteString(fmt.Sprintf("ORIGINATED: %s\n", time.Unix(int64(entry.OriginatedTime), 0).Format(time.RFC3339)))
+		sb.WriteString(fmt.Sprintf("ORIGIN: %s\n", entry.Origin))
+
+		// AS Path
+		sb.WriteString("ASPATH: ")
+		for _, asn := range entry.ASPath {
+			sb.WriteString(fmt.Sprintf("AS%d ", asn))
+		}
+		sb.WriteString("\n")
+
+		// Next Hop
+		sb.WriteString(fmt.Sprintf("NEXT_HOP: %s\n", entry.NextHop.String()))
+
+		// Multi Exit Disc
+		if entry.MultiExitDisc != nil {
+			sb.WriteString(fmt.Sprintf("MULTI_EXIT_DISC: %d\n", *entry.MultiExitDisc))
+		}
+
+		// Communities
+		if len(entry.Communities) > 0 {
+			sb.WriteString(fmt.Sprintf("COMMUNITIES: %v\n", strings.Trim(fmt.Sprintf("%v", entry.Communities), "[]")))
+		}
+
+		// Large Communities
+		if len(entry.LargeCommunities) > 0 {
+			sb.WriteString(fmt.Sprintf("LARGE_COMMUNITIES: %v\n", strings.Trim(fmt.Sprintf("%v", entry.LargeCommunities), "[]")))
+		}
+		// Aggregator
+		if len(entry.Aggregator) > 0 {
+			sb.WriteString(fmt.Sprintf("AGGREGATOR: %s\n", entry.Aggregator))
+		}
+		sb.WriteString("\n")
 	}
 	return sb.String()
 }
@@ -106,8 +145,8 @@ func (t *TableDumpV2) ToJSON() string {
 			Originated: time.Unix(int64(entry.OriginatedTime), 0).Format(time.RFC3339),
 			ASPath:     entry.ASPath,
 			From: From{
-				PeerIP: entry.PeerIndex.Entries[entry.PeerIndexId].PeerIP.String(),
-				PeerAS: entry.PeerIndex.Entries[entry.PeerIndexId].PeerAS,
+				PeerIP: t.PeerIndex.Entries[entry.PeerIndexId].PeerIP.String(),
+				PeerAS: t.PeerIndex.Entries[entry.PeerIndexId].PeerAS,
 			},
 			NextHop:          entry.NextHop.String(),
 			Communities:      entry.Communities,
