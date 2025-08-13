@@ -24,11 +24,13 @@ impl RibIpV4Unicast {
         let mut prefix_bytes = [0u8; 4];
         reader.read_exact(&mut prefix_bytes[..prefix_len_bytes as usize])?;
         let prefix = Ipv4Addr::from(prefix_bytes);
+        // Read the number of entries
         let entry_count = reader.read_u16::<BigEndian>()?;
         println!(
             "sequence_number {}, prefix_len {}, prefix_len_bytes: {}, prefix {}/{}, num_entries {}",
             sequence_number, prefix_len, prefix_len_bytes, prefix, prefix_len, entry_count
         );
+        // read the rib entry
         let mut rib_entries: Vec<RibEntry> = Vec::with_capacity(entry_count as usize);
         for _ in 0..entry_count {
             rib_entries.push(RibEntry::from_reader(reader)?);
@@ -40,5 +42,14 @@ impl RibIpV4Unicast {
             entry_count,
             rib_entries,
         })
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut result = String::new();
+        for entry in &self.rib_entries {
+            result.push_str(&format!("TIME: {}\n", entry.originated_time));
+            result.push_str("TYPE: TABLE_DUMP_V2/IPV4_UNICAST\n");
+        }
+        result
     }
 }
