@@ -1,5 +1,6 @@
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
+use std::fmt;
 use std::io::Read;
 use std::net::Ipv4Addr;
 use strum_macros::{Display, FromRepr};
@@ -33,7 +34,7 @@ pub enum BgpAttributeType {
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct BgpNextHop {
-    pub next_hop: Ipv4Addr,
+    pub ip: Ipv4Addr,
 }
 
 #[derive(Debug)]
@@ -45,13 +46,13 @@ pub struct BgpOrigin {
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct BgpCommunity {
-    community: Vec<(u16, u16)>,
+    pub community: Vec<(u16, u16)>,
 }
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct BgpLargeCommunity {
-    community: Vec<(u32, u32, u32)>,
+    pub community: Vec<(u32, u32, u32)>,
 }
 
 #[derive(Debug)]
@@ -109,6 +110,17 @@ impl BgpOrigin {
     }
 }
 
+impl fmt::Display for BgpOrigin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.origin {
+            BgpOriginType::Igp => write!(f, "IGP")?,
+            BgpOriginType::Egp => write!(f, "EGP")?,
+            BgpOriginType::Incomplete => write!(f, "INCOMPLETE")?,
+        }
+        Ok(())
+    }
+}
+
 impl BgpAsPath {
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let segment_type = reader.read_u8()?;
@@ -128,8 +140,8 @@ impl BgpNextHop {
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let mut next_hop_bytes = [0u8; 4];
         reader.read_exact(&mut next_hop_bytes)?;
-        let next_hop = Ipv4Addr::from(next_hop_bytes);
-        Ok(BgpNextHop { next_hop })
+        let ip = Ipv4Addr::from(next_hop_bytes);
+        Ok(BgpNextHop { ip })
     }
 }
 
