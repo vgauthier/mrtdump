@@ -11,6 +11,7 @@ use std::rc::Rc;
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct RibIpV4Unicast {
+    time: DateTime<chrono::Utc>,
     sequence_number: u32,                 // Sequence number of the RIB entry
     prefix_len: u8,                       // Length of the prefix
     prefix: Ipv4Addr,                     // network prefix
@@ -23,6 +24,7 @@ impl RibIpV4Unicast {
     pub fn from_reader<R: Read>(
         reader: &mut R,
         peer_index_table: Rc<PeerIndexTable>,
+        time: DateTime<chrono::Utc>,
     ) -> Result<Self> {
         let sequence_number = reader.read_u32::<BigEndian>()?;
         let prefix_len = reader.read_u8()?;
@@ -44,6 +46,7 @@ impl RibIpV4Unicast {
             rib_entries.push(RibEntry::from_reader(reader)?);
         }
         Ok(RibIpV4Unicast {
+            time: time,
             sequence_number,
             prefix_len,
             prefix,
@@ -57,11 +60,7 @@ impl RibIpV4Unicast {
 impl Display for RibIpV4Unicast {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for entry in &self.rib_entries {
-            writeln!(
-                f,
-                "TIME: {:?}",
-                DateTime::from_timestamp(entry.originated_time as i64, 0)
-            )?;
+            writeln!(f, "TIME: {}", self.time.format("%Y-%m-%d %H:%M:%S"))?;
             writeln!(f, "TYPE: TABLE_DUMP_V2/IPV4_UNICAST")?;
             writeln!(f, "PREFIX: {:?}/{:?}", self.prefix, self.prefix_len)?;
             writeln!(f, "SEQUENCE: {}", self.sequence_number)?;

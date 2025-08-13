@@ -20,8 +20,11 @@ fn main() -> Result<()> {
     // second message
     let message = MRTMessage::from_reader(&mut file)?;
     let mut message_reader = Cursor::new(message.payload);
-    let rib_ipv4_unicast =
-        RibIpV4Unicast::from_reader(&mut message_reader, peer_index_table_ref.clone())?;
+    let rib_ipv4_unicast = RibIpV4Unicast::from_reader(
+        &mut message_reader,
+        peer_index_table_ref.clone(),
+        message.header.ts,
+    )?;
     println!("{}", rib_ipv4_unicast);
     Ok(())
 }
