@@ -1,3 +1,4 @@
+use crate::libmrt::message::BgpAttributeType;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -8,4 +9,8 @@ pub enum LibMrtError {
     BadMrtSubtype,
     #[error("Unable to parse MRT header")]
     BadMrtHeader,
+    #[error("Invalid BGP attribute type {0}")]
+    InvalidBgpAttributeType(BgpAttributeType),
+    #[error("Invalid BGP Origin type")]
+    InvalidBgpOriginType,
 }

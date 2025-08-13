@@ -9,7 +9,7 @@ use strum_macros::FromRepr;
 #[repr(u16)]
 pub enum MRTSubType {
     PeerIndexTable = 1, // Peer index type
-    RibIpv4unicast = 2, // RIB IPv4 Unicast subtype
+    RibIpV4Unicast = 2, // RIB IPv4 Unicast subtype
 }
 
 #[derive(Debug, PartialEq, FromRepr)]
