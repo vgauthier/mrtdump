@@ -5,6 +5,7 @@ use std::io::Read;
 use std::net::Ipv4Addr;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct RibIpV4Unicast {
     sequence_number: u32, // Sequence number of the RIB entry
     prefix_len: u8,       // Length of the prefix
@@ -14,12 +15,12 @@ pub struct RibIpV4Unicast {
 }
 
 impl RibIpV4Unicast {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<()> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let sequence_number = reader.read_u32::<BigEndian>()?;
         let prefix_len = reader.read_u8()?;
         // Read the prefix for IPv4 addresses
         // Compute Prefix length in bytes
-        let prefix_len_bytes = (prefix_len + 7) / 8;
+        let prefix_len_bytes = prefix_len.div_ceil(8);
         let mut prefix_bytes = [0u8; 4];
         reader.read_exact(&mut prefix_bytes[..prefix_len_bytes as usize])?;
         let prefix = Ipv4Addr::from(prefix_bytes);
@@ -32,6 +33,12 @@ impl RibIpV4Unicast {
         for _ in 0..entry_count {
             rib_entries.push(RibEntry::from_reader(reader)?);
         }
-        Ok(())
+        Ok(RibIpV4Unicast {
+            sequence_number,
+            prefix_len,
+            prefix,
+            entry_count,
+            rib_entries,
+        })
     }
 }

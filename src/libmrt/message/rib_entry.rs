@@ -9,6 +9,7 @@ use std::default::Default;
 use std::io::Read;
 
 #[derive(Debug, Default)]
+#[allow(dead_code)]
 pub struct RibEntry {
     pub peer_index: u16,
     pub originated_time: u32,

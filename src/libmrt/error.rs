@@ -11,6 +11,4 @@ pub enum LibMrtError {
     BadMrtHeader,
     #[error("Invalid BGP attribute type {0}")]
     InvalidBgpAttributeType(BgpAttributeType),
-    #[error("Invalid BGP Origin type")]
-    InvalidBgpOriginType,
 }

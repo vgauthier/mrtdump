@@ -13,6 +13,7 @@ pub enum BgpOriginType {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpMultiExitDisc {
     pub metric: u32,
 }
@@ -30,32 +31,38 @@ pub enum BgpAttributeType {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpNextHop {
     pub next_hop: Ipv4Addr,
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpOrigin {
     pub origin: BgpOriginType,
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpCommunity {
     community: Vec<(u16, u16)>,
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpLargeCommunity {
     community: Vec<(u32, u32, u32)>,
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpAsPath {
     pub segment_type: u8,
     pub segments: Vec<i32>,
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BgpAttributeHeader {
     pub attribute_flag: u8,
     pub attribute_type: BgpAttributeType,
