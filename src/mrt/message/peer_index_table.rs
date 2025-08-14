@@ -46,7 +46,7 @@ impl PeerIndexTable {
 }
 
 impl PeerEntry {
-    fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let peer_type = reader.read_u8()?;
         let is_ipv6: u8 = 0x01;
         let is_asn_size_32: u8 = 0x02;
