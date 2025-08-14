@@ -1,7 +1,7 @@
-mod libmrt;
+mod mrt;
 
 use anyhow::Result;
-use libmrt::{MRTMessage, message::PeerIndexTable, message::RibIpV4Unicast};
+use mrt::{MRTMessage, message::PeerIndexTable, message::RibIpV4Unicast};
 use std::rc::Rc;
 use std::{fs::File, io::Cursor};
 

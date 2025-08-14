@@ -1,10 +1,9 @@
-use super::LibMrtError;
+use crate::mrt;
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::{Utc, prelude::DateTime};
 use std::io::Read;
 use strum_macros::FromRepr;
-
 #[derive(Debug, PartialEq, FromRepr)]
 #[repr(u16)]
 pub enum MRTSubType {
@@ -41,9 +40,9 @@ impl MRTHeader {
         let mrt_type = reader.read_u16::<BigEndian>()?;
         let mrt_subtype = reader.read_u16::<BigEndian>()?;
         let length = reader.read_u32::<BigEndian>()?;
-        let mrt_type = MRTType::from_repr(mrt_type).ok_or(LibMrtError::BadMrtType)?;
-        let mrt_subtype = MRTSubType::from_repr(mrt_subtype).ok_or(LibMrtError::BadMrtSubtype)?;
-        let ts = DateTime::from_timestamp(ts as i64, 0).ok_or(LibMrtError::BadMrtHeader)?;
+        let mrt_type = MRTType::from_repr(mrt_type).ok_or(mrt::Error::BadMrtType)?;
+        let mrt_subtype = MRTSubType::from_repr(mrt_subtype).ok_or(mrt::Error::BadMrtSubtype)?;
+        let ts = DateTime::from_timestamp(ts as i64, 0).ok_or(mrt::Error::BadMrtHeader)?;
         Ok(MRTHeader {
             ts,
             mrt_type,
@@ -83,7 +82,7 @@ mod tests {
         let header = MRTHeader::from_reader(&mut cursor);
         assert!(header.is_err());
         let error_msg = header.unwrap_err().to_string();
-        let expected_error = LibMrtError::BadMrtType.to_string();
+        let expected_error = mrt::Error::BadMrtType.to_string();
         assert_eq!(error_msg, expected_error);
     }
 
@@ -98,7 +97,7 @@ mod tests {
         let header = MRTHeader::from_reader(&mut cursor);
         assert!(header.is_err());
         let error_msg = header.unwrap_err().to_string();
-        let expected_error = LibMrtError::BadMrtSubtype.to_string();
+        let expected_error = mrt::Error::BadMrtSubtype.to_string();
         assert_eq!(error_msg, expected_error);
     }
 }

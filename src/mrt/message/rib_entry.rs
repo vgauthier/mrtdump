@@ -2,7 +2,7 @@ use super::{
     BgpAsPath, BgpAttributeHeader, BgpAttributeType, BgpCommunity, BgpLargeCommunity,
     BgpMultiExitDisc, BgpNextHop, BgpOrigin,
 };
-use crate::libmrt::LibMrtError;
+use crate::mrt;
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
 use std::default::Default;
@@ -65,7 +65,7 @@ impl RibEntry {
                 BgpAttributeType::MultiExitDisc => {
                     rib_entry.bgp_multi_exit_disc = BgpMultiExitDisc::from_reader(reader).ok();
                 }
-                _ => Err(LibMrtError::InvalidBgpAttributeType(header.attribute_type))?,
+                _ => Err(mrt::Error::InvalidBgpAttributeType(header.attribute_type))?,
             }
         }
         println!("{:?}", rib_entry);
