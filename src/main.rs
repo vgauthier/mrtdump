@@ -2,12 +2,13 @@ mod mrt;
 
 use anyhow::Result;
 use mrt::{MRTMessage, message::PeerIndexTable, message::RibIpV4Unicast};
+use std::io::BufReader;
 use std::rc::Rc;
 use std::{fs::File, io::Cursor};
 
 fn main() -> Result<()> {
     let path = "/Users/vgauthier/Downloads/rib.20250701.0000";
-    let mut file = File::open(path)?;
+    let mut file = BufReader::new(File::open(path)?);
     // first message suppose to be a PeerIndexTable
     let message = MRTMessage::from_reader(&mut file)?;
     println!("{:?}", message.header);
@@ -22,7 +23,7 @@ fn main() -> Result<()> {
     let mut message_reader = Cursor::new(message.payload);
     let rib_ipv4_unicast = RibIpV4Unicast::from_reader(
         &mut message_reader,
-        peer_index_table_ref.clone(),
+        &peer_index_table_ref,
         message.header.ts,
     )?;
     println!("{}", rib_ipv4_unicast);

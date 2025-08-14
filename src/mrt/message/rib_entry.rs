@@ -1,18 +1,21 @@
 use super::{
     BgpAsPath, BgpAttributeHeader, BgpAttributeType, BgpCommunity, BgpLargeCommunity,
-    BgpMultiExitDisc, BgpNextHop, BgpOrigin,
+    BgpMultiExitDisc, BgpNextHop, BgpOrigin, PeerIndexTable,
 };
 use crate::mrt;
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
-use std::default::Default;
+use chrono::DateTime;
+use core::net;
 use std::io::Read;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 #[allow(dead_code)]
 pub struct RibEntry {
     pub peer_index: u16,
-    pub originated_time: u32,
+    pub peer_asn: u32,
+    pub peer_ip: net::IpAddr,
+    pub originated_time: DateTime<chrono::Utc>,
     pub attribute_length: u16,
     pub bgp_origin: Option<BgpOrigin>,
     pub bgp_as_path: Option<BgpAsPath>,
@@ -23,9 +26,11 @@ pub struct RibEntry {
 }
 
 impl RibEntry {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R, peer_index_table: &PeerIndexTable) -> Result<Self> {
         let peer_index = reader.read_u16::<BigEndian>()?;
         let originated_time = reader.read_u32::<BigEndian>()?;
+        let originated_time =
+            DateTime::from_timestamp(originated_time as i64, 0).ok_or(std::fmt::Error)?;
         let attribute_length = reader.read_u16::<BigEndian>()?;
         println!(
             "peer_index {}, originated_time {}, attribute_length {}",
@@ -36,7 +41,14 @@ impl RibEntry {
             peer_index,
             originated_time,
             attribute_length,
-            ..Default::default()
+            peer_asn: peer_index_table.entries[peer_index as usize].peer_asn,
+            peer_ip: peer_index_table.entries[peer_index as usize].peer_ip,
+            bgp_origin: None,
+            bgp_as_path: None,
+            bgp_next_hop: None,
+            bgp_community: None,
+            bgp_large_community: None,
+            bgp_multi_exit_disc: None,
         };
 
         // loop over all attributes

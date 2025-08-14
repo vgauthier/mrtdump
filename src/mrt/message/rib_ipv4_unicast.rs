@@ -6,24 +6,22 @@ use chrono::DateTime;
 use std::fmt::{self, Display};
 use std::io::Read;
 use std::net::Ipv4Addr;
-use std::rc::Rc;
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct RibIpV4Unicast {
     time: DateTime<chrono::Utc>,
-    sequence_number: u32,                 // Sequence number of the RIB entry
-    prefix_len: u8,                       // Length of the prefix
-    prefix: Ipv4Addr,                     // network prefix
-    entry_count: u16,                     // Number of entries in the RIB
-    rib_entries: Vec<RibEntry>,           // Rib entries
-    peer_index_table: Rc<PeerIndexTable>, // Reference to the PeerIndexTable
+    sequence_number: u32,       // Sequence number of the RIB entry
+    prefix_len: u8,             // Length of the prefix
+    prefix: Ipv4Addr,           // network prefix
+    entry_count: u16,           // Number of entries in the RIB
+    rib_entries: Vec<RibEntry>, // Rib entries
 }
 
 impl RibIpV4Unicast {
     pub fn from_reader<R: Read>(
         reader: &mut R,
-        peer_index_table: Rc<PeerIndexTable>,
+        peer_index_table: &PeerIndexTable,
         time: DateTime<chrono::Utc>,
     ) -> Result<Self> {
         let sequence_number = reader.read_u32::<BigEndian>()?;
@@ -43,7 +41,7 @@ impl RibIpV4Unicast {
         // read the rib entry
         let mut rib_entries: Vec<RibEntry> = Vec::with_capacity(entry_count as usize);
         for _ in 0..entry_count {
-            rib_entries.push(RibEntry::from_reader(reader)?);
+            rib_entries.push(RibEntry::from_reader(reader, &peer_index_table)?);
         }
         Ok(RibIpV4Unicast {
             time: time,
@@ -52,7 +50,6 @@ impl RibIpV4Unicast {
             prefix,
             entry_count,
             rib_entries,
-            peer_index_table,
         })
     }
 }
@@ -64,18 +61,11 @@ impl Display for RibIpV4Unicast {
             writeln!(f, "TYPE: TABLE_DUMP_V2/IPV4_UNICAST")?;
             writeln!(f, "PREFIX: {:?}/{:?}", self.prefix, self.prefix_len)?;
             writeln!(f, "SEQUENCE: {}", self.sequence_number)?;
-            writeln!(
-                f,
-                "FROM: {:?} AS{:?}",
-                self.peer_index_table.entries[entry.peer_index as usize].peer_ip,
-                self.peer_index_table.entries[entry.peer_index as usize].peer_asn
-            )?;
+            writeln!(f, "FROM: {:?} AS{:?}", entry.peer_ip, entry.peer_asn)?;
             writeln!(
                 f,
                 "ORIGINATED: {}",
-                DateTime::from_timestamp(entry.originated_time as i64, 0)
-                    .ok_or(std::fmt::Error)?
-                    .format("%Y-%m-%d %H:%M:%S")
+                entry.originated_time.format("%Y-%m-%d %H:%M:%S")
             )?;
             if let Some(origin) = &entry.bgp_origin {
                 writeln!(f, "ORIGIN: {}", origin)?;

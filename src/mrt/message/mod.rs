@@ -6,8 +6,8 @@ pub use rib_ipv4_unicast::RibIpV4Unicast;
 
 pub mod rib_entry;
 pub use rib_entry::RibEntry;
-pub mod bgp_attribute;
 
+pub mod bgp_attribute;
 pub use bgp_attribute::BgpAsPath;
 pub use bgp_attribute::BgpAttributeHeader;
 pub use bgp_attribute::BgpAttributeType;
