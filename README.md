@@ -16,6 +16,36 @@ The Rust implementation of bgpdump exports the binary MRT format to a human-read
 | OSPFv3          | 48    | No              |  
 | OSPFv3_ET       | 49    | No              |
 
+# Usage
+
+```bash 
+> mrtdump rib.20250701.0000
+TIME: 2025-07-01 00:00:00
+TYPE: TABLE_DUMP_V2/IPV4_UNICAST
+PREFIX: 0.0.0.0/0
+SEQUENCE: 0
+FROM: 87.121.64.4 AS57463
+ORIGINATED: 2025-06-26 21:10:33
+ORIGIN: IGP
+ASPATH: 57463 3356
+NEXT_HOP: 87.121.64.4
+COMMUNITIES: 1:1085 64700:3356 65400:1 65400:65500
+LARGE_COMMUNITY: 57463:64700:3356
+
+TIME: 2025-07-01 00:00:00
+TYPE: TABLE_DUMP_V2/IPV4_UNICAST
+PREFIX: 0.0.0.0/0
+SEQUENCE: 0
+FROM: 94.156.252.18 AS34224
+ORIGINATED: 2025-06-30 17:21:08
+ORIGIN: IGP
+ASPATH: 34224 3356
+NEXT_HOP: 94.156.252.18
+MULTI_EXIT_DISC: 0
+COMMUNITIES: 34224:333
+...
+```
+
 ## TODOs
 * Remove the PeerIndex from the rib entry struct and the String from the ribentry.go
 * Implement CVS print option

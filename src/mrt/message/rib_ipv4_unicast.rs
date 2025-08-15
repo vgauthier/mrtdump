@@ -89,14 +89,14 @@ impl Display for RibIpV4Unicast {
                 writeln!(f, "NEXT_HOP: {}", next_hop.0)?;
             }
             if let Some(multi_exit_disc) = &entry.bgp_multi_exit_disc {
-                writeln!(f, "MULTI_EXIT_DISC: {}", multi_exit_disc.metric)?;
+                writeln!(f, "MULTI_EXIT_DISC: {}", multi_exit_disc.0)?;
             }
             if let Some(communities) = &entry.bgp_community {
                 writeln!(
                     f,
                     "COMMUNITIES: {}",
                     communities
-                        .community
+                        .0
                         .iter()
                         .map(|(asn, local)| format!("{}:{}", asn, local))
                         .collect::<Vec<_>>()
@@ -108,7 +108,7 @@ impl Display for RibIpV4Unicast {
                     f,
                     "LARGE_COMMUNITY: {}",
                     communities
-                        .community
+                        .0
                         .iter()
                         .map(|(asn, local, global)| format!("{}:{}:{}", asn, local, global))
                         .collect::<Vec<_>>()

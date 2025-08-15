@@ -16,9 +16,7 @@ pub enum BgpOriginType {
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
-pub struct BgpMultiExitDisc {
-    pub metric: u32,
-}
+pub struct BgpMultiExitDisc(pub u32);
 
 #[derive(Debug, FromRepr, Display, Serialize)]
 #[repr(u8)]
@@ -35,27 +33,18 @@ pub enum BgpAttributeType {
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpNextHop(pub Ipv4Addr);
-// pub struct BgpNextHop {
-//     pub ip: Ipv4Addr,
-// }
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
-pub struct BgpOrigin {
-    pub origin: BgpOriginType,
-}
+pub struct BgpOrigin(pub BgpOriginType);
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
-pub struct BgpCommunity {
-    pub community: Vec<(u16, u16)>,
-}
+pub struct BgpCommunity(pub Vec<(u16, u16)>);
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
-pub struct BgpLargeCommunity {
-    pub community: Vec<(u32, u32, u32)>,
-}
+pub struct BgpLargeCommunity(pub Vec<(u32, u32, u32)>);
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
@@ -108,13 +97,13 @@ impl BgpOrigin {
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let origin = BgpOriginType::from_repr(reader.read_u8()?)
             .ok_or(anyhow::anyhow!("Invalid BGP origin type"))?;
-        Ok(BgpOrigin { origin })
+        Ok(BgpOrigin(origin))
     }
 }
 
 impl fmt::Display for BgpOrigin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.origin {
+        match self.0 {
             BgpOriginType::Igp => write!(f, "IGP")?,
             BgpOriginType::Egp => write!(f, "EGP")?,
             BgpOriginType::Incomplete => write!(f, "INCOMPLETE")?,
@@ -157,7 +146,7 @@ impl BgpCommunity {
             let local = reader.read_u16::<BigEndian>()?;
             community.push((asn, local));
         }
-        Ok(BgpCommunity { community })
+        Ok(BgpCommunity(community))
     }
 }
 
@@ -171,13 +160,13 @@ impl BgpLargeCommunity {
             let local_2 = reader.read_u32::<BigEndian>()?;
             community.push((global_administrator, local_1, local_2));
         }
-        Ok(BgpLargeCommunity { community })
+        Ok(BgpLargeCommunity(community))
     }
 }
 
 impl BgpMultiExitDisc {
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let metric = reader.read_u32::<BigEndian>()?;
-        Ok(BgpMultiExitDisc { metric })
+        Ok(BgpMultiExitDisc(metric))
     }
 }
