@@ -7,9 +7,12 @@ use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::DateTime;
 use core::net;
+use serde::Serialize;
+use serde_with::skip_serializing_none;
 use std::io::Read;
 
-#[derive(Debug)]
+#[skip_serializing_none]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct RibEntry {
     pub peer_index: u16,

@@ -3,11 +3,14 @@ use super::RibEntry;
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::DateTime;
+use serde::Serialize;
+use serde_with::serde_as;
 use std::fmt::{self, Display};
 use std::io::Read;
 use std::net::Ipv4Addr;
 
-#[derive(Debug)]
+#[serde_as]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct RibIpV4Unicast {
     time: DateTime<chrono::Utc>,

@@ -1,11 +1,12 @@
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
+use serde::Serialize;
 use std::fmt;
 use std::io::Read;
 use std::net::Ipv4Addr;
 use strum_macros::{Display, FromRepr};
 
-#[derive(Debug, FromRepr)]
+#[derive(Debug, FromRepr, Serialize)]
 #[repr(u8)]
 pub enum BgpOriginType {
     Igp = 0,
@@ -13,13 +14,13 @@ pub enum BgpOriginType {
     Incomplete = 2,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpMultiExitDisc {
     pub metric: u32,
 }
 
-#[derive(Debug, FromRepr, Display)]
+#[derive(Debug, FromRepr, Display, Serialize)]
 #[repr(u8)]
 pub enum BgpAttributeType {
     Origin = 1,
@@ -31,38 +32,38 @@ pub enum BgpAttributeType {
     LargeCommunity = 32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpNextHop {
     pub ip: Ipv4Addr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpOrigin {
     pub origin: BgpOriginType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpCommunity {
     pub community: Vec<(u16, u16)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpLargeCommunity {
     pub community: Vec<(u32, u32, u32)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpAsPath {
     pub segment_type: u8,
     pub segments: Vec<i32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[allow(dead_code)]
 pub struct BgpAttributeHeader {
     pub attribute_flag: u8,
