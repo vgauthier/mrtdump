@@ -44,10 +44,10 @@ impl RibIpV4Unicast {
         // read the rib entry
         let mut rib_entries: Vec<RibEntry> = Vec::with_capacity(entry_count as usize);
         for _ in 0..entry_count {
-            rib_entries.push(RibEntry::from_reader(reader, &peer_index_table)?);
+            rib_entries.push(RibEntry::from_reader(reader, peer_index_table)?);
         }
         Ok(RibIpV4Unicast {
-            time: time,
+            time,
             sequence_number,
             prefix_len,
             prefix,

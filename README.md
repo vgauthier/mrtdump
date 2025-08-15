@@ -47,11 +47,11 @@ COMMUNITIES: 34224:333
 ```
 
 ## TODOs
-* Remove the PeerIndex from the rib entry struct and the String from the ribentry.go
+* Better error handling
 * Implement CVS print option
-* Change the function ToJSON print from a struct to map
 * Implement a read from bzip, zip and gz file
 * Add option to output to a file
+
 
 
 ## Licence
