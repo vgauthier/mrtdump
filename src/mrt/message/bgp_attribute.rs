@@ -1,9 +1,7 @@
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt};
 use serde::Serialize;
-use std::fmt;
-use std::io::Read;
-use std::net::Ipv4Addr;
+use std::{fmt, io::Read, net::Ipv4Addr};
 use strum_macros::{Display, FromRepr};
 
 #[derive(Debug, FromRepr, Serialize)]

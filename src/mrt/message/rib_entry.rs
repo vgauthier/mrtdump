@@ -8,9 +8,10 @@ use byteorder::{BigEndian, ReadBytesExt};
 use chrono::DateTime;
 use core::net;
 use serde::Serialize;
-use serde_with::skip_serializing_none;
+use serde_with::{DisplayFromStr, serde_as, skip_serializing_none};
 use std::io::Read;
 
+#[serde_as]
 #[skip_serializing_none]
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
@@ -20,6 +21,7 @@ pub struct RibEntry {
     pub peer_ip: net::IpAddr,
     pub originated_time: DateTime<chrono::Utc>,
     pub attribute_length: u16,
+    #[serde_as(as = "Option<DisplayFromStr>")]
     pub bgp_origin: Option<BgpOrigin>,
     pub bgp_as_path: Option<BgpAsPath>,
     pub bgp_next_hop: Option<BgpNextHop>,
