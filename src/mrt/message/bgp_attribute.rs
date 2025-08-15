@@ -34,9 +34,10 @@ pub enum BgpAttributeType {
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
-pub struct BgpNextHop {
-    pub ip: Ipv4Addr,
-}
+pub struct BgpNextHop(pub Ipv4Addr);
+// pub struct BgpNextHop {
+//     pub ip: Ipv4Addr,
+// }
 
 #[derive(Debug, Serialize)]
 #[allow(dead_code)]
@@ -142,7 +143,8 @@ impl BgpNextHop {
         let mut next_hop_bytes = [0u8; 4];
         reader.read_exact(&mut next_hop_bytes)?;
         let ip = Ipv4Addr::from(next_hop_bytes);
-        Ok(BgpNextHop { ip })
+        //Ok(BgpNextHop { ip })
+        Ok(BgpNextHop(ip))
     }
 }
 

@@ -86,7 +86,7 @@ impl Display for RibIpV4Unicast {
                 )?;
             }
             if let Some(next_hop) = &entry.bgp_next_hop {
-                writeln!(f, "NEXT_HOP: {}", next_hop.ip)?;
+                writeln!(f, "NEXT_HOP: {}", next_hop.0)?;
             }
             if let Some(multi_exit_disc) = &entry.bgp_multi_exit_disc {
                 writeln!(f, "MULTI_EXIT_DISC: {}", multi_exit_disc.metric)?;
