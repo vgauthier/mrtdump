@@ -30,7 +30,7 @@ impl PeerIndexTable {
         let view_name = String::from_utf8(view_name)?;
         let nentries = reader.read_u16::<BigEndian>()?;
         // Read the peer entries
-        let mut entries = Vec::with_capacity(nentries as usize);
+        let mut entries = Vec::with_capacity(nentries.into());
         for _ in 0..nentries {
             let entry = PeerEntry::from_reader(reader)?;
             entries.push(entry);

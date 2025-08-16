@@ -113,7 +113,7 @@ impl fmt::Display for BgpOrigin {
 impl BgpAsPath {
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let segment_type = reader.read_u8()?;
-        let segment_count = reader.read_u8()? as usize;
+        let segment_count: usize = reader.read_u8()?.into();
         let mut segments = Vec::with_capacity(segment_count);
         for _ in 0..segment_count {
             segments.push(reader.read_i32::<BigEndian>()?);
@@ -137,7 +137,7 @@ impl BgpNextHop {
 
 impl BgpCommunity {
     pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self> {
-        let community_count = (length / 4) as usize;
+        let community_count: usize = (length / 4).into();
         let mut community = Vec::with_capacity(community_count);
         for _ in 0..community_count {
             let asn = reader.read_u16::<BigEndian>()?;
@@ -150,7 +150,7 @@ impl BgpCommunity {
 
 impl BgpLargeCommunity {
     pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self> {
-        let community_count = (length / 12) as usize;
+        let community_count: usize = (length / 12).into();
         let mut community = Vec::with_capacity(community_count);
         for _ in 0..community_count {
             let global_administrator = reader.read_u32::<BigEndian>()?;

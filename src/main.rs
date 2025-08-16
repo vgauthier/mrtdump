@@ -20,6 +20,7 @@ fn main() -> Result<()> {
         eprintln!("Failed to open file: {}", path);
         exit(1);
     });
+
     // first message suppose to be a PeerIndexTable
     let message = MRTMessage::from_reader(&mut file)?;
     println!("{:?}", message.header);
