@@ -78,7 +78,7 @@ impl BgpAttributeHeader {
         // parse bgp attribute
         // todo!() provide a good error case
         let attribute_type =
-            BgpAttributeType::from_repr(attribute_type).ok_or(Error::BadMrtHeader)?;
+            BgpAttributeType::from_repr(attribute_type).ok_or(Error::ErrorParsingBgpAttribute)?;
 
         Ok(BgpAttributeHeader {
             attribute_flag,

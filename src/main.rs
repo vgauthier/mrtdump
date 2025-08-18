@@ -34,7 +34,12 @@ fn read_table_dump_v2<R: Read>(reader: &mut R, peer_index_table: &Vec<u8>) -> Re
             )?;
             println!("{}", rib_ipv4_unicast);
         }
-        _ => return Err(mrt::Error::InvalidMrtType),
+        _ => {
+            return Err(Error::InvalidMrtType(
+                message.header.mrt_type,
+                message.header.mrt_subtype,
+            ));
+        }
     }
     Ok(())
 }

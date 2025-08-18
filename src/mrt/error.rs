@@ -1,4 +1,4 @@
-use crate::mrt::{MRTSubType, MRTType, message};
+use crate::mrt::{MRTSubType, MRTType, message::BgpAttributeType};
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -11,12 +11,12 @@ pub enum Error {
     BadMrtSubtype(u16),
     #[error("Unable to parse MRT header")]
     BadMrtHeader,
-    #[error("Unknown BGP attribute error")]
-    UnknownBgpAttribute,
+    #[error("Error parsing BGP attribute")]
+    ErrorParsingBgpAttribute,
     #[error("Invalid BGP attribute type {0}")]
-    InvalidBgpAttributeType(message::BgpAttributeType),
+    InvalidBgpAttributeType(BgpAttributeType),
     #[error("Wrong MRT type or subtype")]
-    InvalidMrtType,
+    InvalidMrtType(MRTType, MRTSubType),
     #[error("I/O error: {0}")]
     IO(#[from] std::io::Error),
     #[error("UTF-8 error: {0}")]
