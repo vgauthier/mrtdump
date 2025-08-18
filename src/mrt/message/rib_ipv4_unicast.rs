@@ -1,6 +1,6 @@
 use super::PeerIndexTable;
 use super::RibEntry;
-use anyhow::Result;
+use crate::mrt::Error;
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::DateTime;
 use serde::Serialize;
@@ -26,7 +26,7 @@ impl RibIpV4Unicast {
         reader: &mut R,
         peer_index_table: &PeerIndexTable,
         time: DateTime<chrono::Utc>,
-    ) -> Result<Self> {
+    ) -> Result<Self, Error> {
         let sequence_number = reader.read_u32::<BigEndian>()?;
         let prefix_len = reader.read_u8()?;
         // Read the prefix for IPv4 addresses

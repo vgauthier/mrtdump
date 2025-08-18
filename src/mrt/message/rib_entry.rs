@@ -2,8 +2,7 @@ use super::{
     BgpAsPath, BgpAttributeHeader, BgpAttributeType, BgpCommunity, BgpLargeCommunity,
     BgpMultiExitDisc, BgpNextHop, BgpOrigin, PeerIndexTable,
 };
-use crate::mrt;
-use anyhow::Result;
+use crate::mrt::{self, Error};
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::DateTime;
 use core::net;
@@ -31,11 +30,14 @@ pub struct RibEntry {
 }
 
 impl RibEntry {
-    pub fn from_reader<R: Read>(reader: &mut R, peer_index_table: &PeerIndexTable) -> Result<Self> {
+    pub fn from_reader<R: Read>(
+        reader: &mut R,
+        peer_index_table: &PeerIndexTable,
+    ) -> Result<Self, Error> {
         let peer_index = reader.read_u16::<BigEndian>()?;
         let originated_time = reader.read_u32::<BigEndian>()?;
         let originated_time =
-            DateTime::from_timestamp(originated_time as i64, 0).ok_or(std::fmt::Error)?;
+            DateTime::from_timestamp(originated_time as i64, 0).ok_or(Error::BadMrtHeader)?;
         let attribute_length = reader.read_u16::<BigEndian>()?;
         println!(
             "peer_index {}, originated_time {}, attribute_length {}",

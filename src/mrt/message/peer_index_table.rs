@@ -1,4 +1,4 @@
-use anyhow::Result;
+use crate::mrt::Error;
 use byteorder::{BigEndian, ReadBytesExt};
 use std::io::Read;
 use std::net::{IpAddr, IpAddr::V4, IpAddr::V6, Ipv4Addr, Ipv6Addr};
@@ -22,7 +22,7 @@ pub struct PeerIndexTable {
 }
 
 impl PeerIndexTable {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let collector_bgp_id = reader.read_u32::<BigEndian>()?;
         let view_name_len = reader.read_u16::<BigEndian>()?;
         let mut view_name = vec![0u8; view_name_len as usize];
@@ -46,7 +46,7 @@ impl PeerIndexTable {
 }
 
 impl PeerEntry {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let peer_type = reader.read_u8()?;
         let is_ipv6: u8 = 0x01;
         let is_asn_size_32: u8 = 0x02;

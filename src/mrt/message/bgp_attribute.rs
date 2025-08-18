@@ -1,4 +1,4 @@
-use anyhow::Result;
+use crate::mrt::Error;
 use byteorder::{BigEndian, ReadBytesExt};
 use serde::Serialize;
 use std::{fmt, io::Read, net::Ipv4Addr};
@@ -61,7 +61,7 @@ pub struct BgpAttributeHeader {
 }
 
 impl BgpAttributeHeader {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let is_extended_length = 0x10;
         let attribute_flag = reader.read_u8()?;
         let attribute_type = reader.read_u8()?;
@@ -77,10 +77,8 @@ impl BgpAttributeHeader {
         };
         // parse bgp attribute
         // todo!() provide a good error case
-        let attribute_type = BgpAttributeType::from_repr(attribute_type).ok_or(anyhow::anyhow!(
-            "Invalid BGP attribute type: {}",
-            attribute_type
-        ))?;
+        let attribute_type =
+            BgpAttributeType::from_repr(attribute_type).ok_or(Error::BadMrtHeader)?;
 
         Ok(BgpAttributeHeader {
             attribute_flag,
@@ -92,9 +90,8 @@ impl BgpAttributeHeader {
 }
 
 impl BgpOrigin {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
-        let origin = BgpOriginType::from_repr(reader.read_u8()?)
-            .ok_or(anyhow::anyhow!("Invalid BGP origin type"))?;
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
+        let origin = BgpOriginType::from_repr(reader.read_u8()?).ok_or(Error::BadMrtHeader)?;
         Ok(BgpOrigin(origin))
     }
 }
@@ -111,7 +108,7 @@ impl fmt::Display for BgpOrigin {
 }
 
 impl BgpAsPath {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let segment_type = reader.read_u8()?;
         let segment_count: usize = reader.read_u8()?.into();
         let mut segments = Vec::with_capacity(segment_count);
@@ -126,7 +123,7 @@ impl BgpAsPath {
 }
 
 impl BgpNextHop {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let mut next_hop_bytes = [0u8; 4];
         reader.read_exact(&mut next_hop_bytes)?;
         let ip = Ipv4Addr::from(next_hop_bytes);
@@ -136,7 +133,7 @@ impl BgpNextHop {
 }
 
 impl BgpCommunity {
-    pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self, Error> {
         let community_count: usize = (length / 4).into();
         let mut community = Vec::with_capacity(community_count);
         for _ in 0..community_count {
@@ -149,7 +146,7 @@ impl BgpCommunity {
 }
 
 impl BgpLargeCommunity {
-    pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self, Error> {
         let community_count: usize = (length / 12).into();
         let mut community = Vec::with_capacity(community_count);
         for _ in 0..community_count {
@@ -163,7 +160,7 @@ impl BgpLargeCommunity {
 }
 
 impl BgpMultiExitDisc {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let metric = reader.read_u32::<BigEndian>()?;
         Ok(BgpMultiExitDisc(metric))
     }

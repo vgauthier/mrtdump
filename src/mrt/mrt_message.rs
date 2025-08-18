@@ -1,13 +1,14 @@
-use super::MRTHeader;
-use anyhow::Result;
+use super::{Error, MRTHeader};
 use std::io::Read;
+
+#[derive(Debug)]
 pub struct MRTMessage {
     pub header: MRTHeader,
     pub payload: Vec<u8>,
 }
 
 impl MRTMessage {
-    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self> {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let header = MRTHeader::from_reader(reader)?;
         let mut payload = vec![0u8; header.length as usize];
         reader.read_exact(&mut payload)?;

@@ -1,17 +1,23 @@
-use crate::mrt;
-use anyhow::Result;
+use crate::mrt::{Error, Result};
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::{Utc, prelude::DateTime};
 use std::io::Read;
 use strum_macros::FromRepr;
-#[derive(Debug, PartialEq, FromRepr)]
+
+#[derive(Debug, PartialEq, FromRepr, Clone, Copy)]
 #[repr(u16)]
 pub enum MRTSubType {
     PeerIndexTable = 1, // Peer index type
     RibIpV4Unicast = 2, // RIB IPv4 Unicast subtype
 }
 
-#[derive(Debug, PartialEq, FromRepr)]
+impl std::fmt::Display for MRTSubType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, PartialEq, FromRepr, Clone, Copy)]
 #[repr(u16)]
 pub enum MRTType {
     OspfV2 = 11,
@@ -25,7 +31,13 @@ pub enum MRTType {
     OspfV3Et = 49,
 }
 
-#[derive(Debug)]
+impl std::fmt::Display for MRTType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
 pub struct MRTHeader {
     pub ts: DateTime<Utc>,       // "Timestamp" in seconds since epoch"
@@ -40,9 +52,10 @@ impl MRTHeader {
         let mrt_type = reader.read_u16::<BigEndian>()?;
         let mrt_subtype = reader.read_u16::<BigEndian>()?;
         let length = reader.read_u32::<BigEndian>()?;
-        let mrt_type = MRTType::from_repr(mrt_type).ok_or(mrt::Error::BadMrtType)?;
-        let mrt_subtype = MRTSubType::from_repr(mrt_subtype).ok_or(mrt::Error::BadMrtSubtype)?;
-        let ts = DateTime::from_timestamp(ts as i64, 0).ok_or(mrt::Error::BadMrtHeader)?;
+        let mrt_type = MRTType::from_repr(mrt_type).ok_or(Error::BadMrtType(mrt_type))?;
+        let mrt_subtype =
+            MRTSubType::from_repr(mrt_subtype).ok_or(Error::BadMrtSubtype(mrt_subtype))?;
+        let ts = DateTime::from_timestamp(ts as i64, 0).ok_or(Error::BadMrtHeader)?;
         Ok(MRTHeader {
             ts,
             mrt_type,
@@ -82,7 +95,7 @@ mod tests {
         let header = MRTHeader::from_reader(&mut cursor);
         assert!(header.is_err());
         let error_msg = header.unwrap_err().to_string();
-        let expected_error = mrt::Error::BadMrtType.to_string();
+        let expected_error = Error::BadMrtType(0x13).to_string();
         assert_eq!(error_msg, expected_error);
     }
 
@@ -97,7 +110,7 @@ mod tests {
         let header = MRTHeader::from_reader(&mut cursor);
         assert!(header.is_err());
         let error_msg = header.unwrap_err().to_string();
-        let expected_error = mrt::Error::BadMrtSubtype.to_string();
+        let expected_error = Error::BadMrtSubtype(0x05).to_string();
         assert_eq!(error_msg, expected_error);
     }
 }

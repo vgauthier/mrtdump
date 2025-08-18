@@ -3,5 +3,8 @@ pub mod message;
 pub mod mrt_header;
 pub mod mrt_message;
 pub use error::Error;
+pub use error::Result;
 pub use mrt_header::MRTHeader;
+pub use mrt_header::MRTSubType;
+pub use mrt_header::MRTType;
 pub use mrt_message::MRTMessage;
