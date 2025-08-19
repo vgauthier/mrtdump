@@ -46,7 +46,7 @@ fn read_rib_ipv4_unicast<R: Read, W: Write>(
     if arg.json {
         writeln!(writer, "{}", to_string_pretty(&rib_ipv4_unicast)?)?;
     } else if arg.print {
-        writeln!(writer, "{}", rib_ipv4_unicast)?;
+        writeln!(writer, "{}", &rib_ipv4_unicast)?;
     }
     Ok(())
 }

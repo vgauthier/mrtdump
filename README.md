@@ -1,7 +1,7 @@
 # MRTDump
 
 ## Introduction 
-The Rust implementation of bgpdump exports the binary MRT format to a human-readable format. The MRT format is used to export routing protocol messages, state changes, and contents of the routing information base. It is defined in [RFC6396](https://doi.org/10.17487/rfc6396).
+The Rust implementation of bgpdump to exports the binary MRT format to a human-readable format. The MRT format is used to export routing protocol messages, state changes, and contents of the routing information base. It is defined in [RFC6396](https://doi.org/10.17487/rfc6396).
 
 ### Currently supported MRT types
 
