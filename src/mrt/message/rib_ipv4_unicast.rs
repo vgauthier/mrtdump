@@ -37,10 +37,10 @@ impl RibIpV4Unicast {
         let prefix = Ipv4Addr::from(prefix_bytes);
         // Read the number of entries
         let entry_count = reader.read_u16::<BigEndian>()?;
-        println!(
-            "sequence_number {}, prefix_len {}, prefix_len_bytes: {}, prefix {}/{}, num_entries {}",
-            sequence_number, prefix_len, prefix_len_bytes, prefix, prefix_len, entry_count
-        );
+        // println!(
+        //     "sequence_number {}, prefix_len {}, prefix_len_bytes: {}, prefix {}/{}, num_entries {}",
+        //     sequence_number, prefix_len, prefix_len_bytes, prefix, prefix_len, entry_count
+        // );
         // read the rib entry
         let mut rib_entries: Vec<RibEntry> = Vec::with_capacity(entry_count as usize);
         for _ in 0..entry_count {
@@ -114,6 +114,9 @@ impl Display for RibIpV4Unicast {
                         .collect::<Vec<_>>()
                         .join(" ")
                 )?;
+            }
+            if let Some(aggregator) = &entry.bgp_aggregator {
+                writeln!(f, "AGGREGATOR: {} {}", aggregator.asn, aggregator.ip)?;
             }
             writeln!(f)?;
         }

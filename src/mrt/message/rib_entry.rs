@@ -1,14 +1,14 @@
 use super::{
-    BgpAsPath, BgpAttributeHeader, BgpAttributeType, BgpCommunity, BgpLargeCommunity,
-    BgpMultiExitDisc, BgpNextHop, BgpOrigin, PeerIndexTable,
+    BgpAggregator, BgpAsPath, BgpAttributeHeader, BgpAttributeType, BgpCommunity,
+    BgpLargeCommunity, BgpMultiExitDisc, BgpNextHop, BgpOrigin, PeerIndexTable,
 };
-use crate::mrt::{self, Error};
+use crate::mrt::Error;
 use byteorder::{BigEndian, ReadBytesExt};
 use chrono::DateTime;
 use core::net;
 use serde::Serialize;
 use serde_with::{DisplayFromStr, serde_as, skip_serializing_none};
-use std::io::Read;
+use std::io::{Read, copy, sink};
 
 #[serde_as]
 #[skip_serializing_none]
@@ -27,6 +27,7 @@ pub struct RibEntry {
     pub bgp_community: Option<BgpCommunity>,
     pub bgp_large_community: Option<BgpLargeCommunity>,
     pub bgp_multi_exit_disc: Option<BgpMultiExitDisc>,
+    pub bgp_aggregator: Option<BgpAggregator>,
 }
 
 impl RibEntry {
@@ -39,10 +40,10 @@ impl RibEntry {
         let originated_time =
             DateTime::from_timestamp(originated_time as i64, 0).ok_or(Error::BadMrtHeader)?;
         let attribute_length = reader.read_u16::<BigEndian>()?;
-        println!(
-            "peer_index {}, originated_time {}, attribute_length {}",
-            peer_index, originated_time, attribute_length
-        );
+        // println!(
+        //     "peer_index {}, originated_time {}, attribute_length {}",
+        //     peer_index, originated_time, attribute_length
+        // );
         // Here you would typically read the attributes based on the attribute_length
         let mut rib_entry = RibEntry {
             peer_index,
@@ -56,6 +57,7 @@ impl RibEntry {
             bgp_community: None,
             bgp_large_community: None,
             bgp_multi_exit_disc: None,
+            bgp_aggregator: None,
         };
 
         // loop over all attributes
@@ -84,10 +86,19 @@ impl RibEntry {
                 BgpAttributeType::MultiExitDisc => {
                     rib_entry.bgp_multi_exit_disc = BgpMultiExitDisc::from_reader(reader).ok();
                 }
-                _ => Err(mrt::Error::InvalidBgpAttributeType(header.attribute_type))?,
+                BgpAttributeType::Aggregator => {
+                    rib_entry.bgp_aggregator = BgpAggregator::from_reader(reader).ok();
+                }
+                _ => {
+                    // skip unimplemented attributes
+                    copy(
+                        &mut reader.take(header.attribute_length as u64),
+                        &mut sink(),
+                    )?;
+                }
             }
         }
-        println!("{:?}", rib_entry);
+        //println!("{:?}", rib_entry);
         Ok(rib_entry)
     }
 }

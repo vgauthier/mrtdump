@@ -23,9 +23,12 @@ pub enum BgpAttributeType {
     AsPath = 2,
     NextHop = 3,
     MultiExitDisc = 4,
+    AtomicAggregate = 6,
     Aggregator = 7,
     Community = 8,
     LargeCommunity = 32,
+    Otc = 35,
+    BfdDiscriminator = 38,
 }
 
 #[derive(Debug, Serialize)]
@@ -49,6 +52,13 @@ pub struct BgpLargeCommunity(pub Vec<(u32, u32, u32)>);
 pub struct BgpAsPath {
     pub segment_type: u8,
     pub segments: Vec<i32>,
+}
+
+#[derive(Debug, Serialize)]
+#[allow(dead_code)]
+pub struct BgpAggregator {
+    pub asn: u32,
+    pub ip: Ipv4Addr,
 }
 
 #[derive(Debug, Serialize)]
@@ -77,8 +87,8 @@ impl BgpAttributeHeader {
         };
         // parse bgp attribute
         // todo!() provide a good error case
-        let attribute_type =
-            BgpAttributeType::from_repr(attribute_type).ok_or(Error::ErrorParsingBgpAttribute)?;
+        let attribute_type = BgpAttributeType::from_repr(attribute_type)
+            .ok_or(Error::ErrorParsingBgpAttribute(attribute_type))?;
 
         Ok(BgpAttributeHeader {
             attribute_flag,
@@ -129,6 +139,16 @@ impl BgpNextHop {
         let ip = Ipv4Addr::from(next_hop_bytes);
         //Ok(BgpNextHop { ip })
         Ok(BgpNextHop(ip))
+    }
+}
+
+impl BgpAggregator {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
+        let asn = reader.read_u32::<BigEndian>()?;
+        let mut ip_bytes = [0u8; 4];
+        reader.read_exact(&mut ip_bytes)?;
+        let ip = Ipv4Addr::from(ip_bytes);
+        Ok(BgpAggregator { asn, ip })
     }
 }
 
