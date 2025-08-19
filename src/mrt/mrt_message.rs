@@ -1,10 +1,10 @@
 use super::{Error, MRTHeader};
-use std::io::Read;
+use std::io::{Cursor, Read};
 
 #[derive(Debug)]
 pub struct MRTMessage {
     pub header: MRTHeader,
-    pub payload: Vec<u8>,
+    pub payload: Cursor<Vec<u8>>,
 }
 
 impl MRTMessage {
@@ -12,7 +12,10 @@ impl MRTMessage {
         let header = MRTHeader::from_reader(reader)?;
         let mut payload = vec![0u8; header.length as usize];
         reader.read_exact(&mut payload)?;
-        Ok(MRTMessage { header, payload })
+        Ok(MRTMessage {
+            header,
+            payload: Cursor::new(payload),
+        })
     }
 }
 
@@ -32,6 +35,8 @@ mod tests {
         ]);
         let message = MRTMessage::from_reader(&mut cursor);
         assert!(message.is_ok());
-        assert_eq!(message.unwrap().payload, vec![0x1, 0x1, 0x1, 0x1]);
+        let mut buf = [0u8; 4];
+        message.unwrap().payload.read_exact(&mut buf).unwrap();
+        assert_eq!(buf, [0x1, 0x1, 0x1, 0x1]);
     }
 }
