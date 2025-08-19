@@ -21,4 +21,6 @@ pub enum Error {
     FromUtf8Error(#[from] std::string::FromUtf8Error),
     #[error("Serde error: {0}")]
     SerdeError(#[from] serde_json::Error),
+    #[error("Invalid peer index: {0}")]
+    InvalidPeerIndex(u16),
 }

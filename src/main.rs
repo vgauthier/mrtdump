@@ -7,10 +7,9 @@ use mrt::{
     message::RibIpV4Unicast,
 };
 use serde_json::to_string_pretty;
-
 use std::{
     fs::File,
-    io::{BufReader, Cursor, Read},
+    io::{BufReader, BufWriter, Cursor, Read, prelude::*},
     process::exit,
 };
 
@@ -20,6 +19,9 @@ use std::{
 #[command(version = "0.1")]
 #[command(about = "Read MRT binary files and format and print it in a human-readable format JSON/CSV/PRINT", long_about = None)]
 struct Args {
+    #[arg(short, long, default_value_t = true)]
+    /// Multi-line, human-readable (the default)
+    print: bool,
     #[arg(short, long, default_value_t = false)]
     /// Output in JSON format
     json: bool,
@@ -28,48 +30,48 @@ struct Args {
 }
 
 fn open_file(path: &str) -> Result<BufReader<File>> {
+    const BUFFER_SIZE: usize = 10 * 1024 * 1024; // 10 MB
     let file = File::open(path)?;
-    Ok(BufReader::new(file))
+    Ok(BufReader::with_capacity(BUFFER_SIZE, file))
 }
 
-fn read_rib_ipv4_unicast<R: Read>(
+fn read_rib_ipv4_unicast<R: Read, W: Write>(
     reader: &mut R,
+    writer: &mut W,
     peer_index_table: &PeerIndexTable,
     timestamp: DateTime<Utc>,
     arg: &Args,
 ) -> Result<()> {
     let rib_ipv4_unicast = RibIpV4Unicast::from_reader(reader, peer_index_table, timestamp)?;
-    match arg.json {
-        true => println!("{}", to_string_pretty(&rib_ipv4_unicast)?),
-        false => println!("{}", rib_ipv4_unicast),
+    if arg.json {
+        writeln!(writer, "{}", to_string_pretty(&rib_ipv4_unicast)?)?;
+    } else if arg.print {
+        writeln!(writer, "{}", rib_ipv4_unicast)?;
     }
     Ok(())
 }
 
-fn read_table_dump_v2<R: Read>(
-    reader: &mut R,
+fn read_table_dump_v2<B: BufRead>(
+    reader: &mut B,
     peer_index_table: &mut Cursor<Vec<u8>>,
     arg: &Args,
 ) -> Result<()> {
     // Read the table dump v2
     let peer_index_table = PeerIndexTable::from_reader(peer_index_table)?;
-
-    loop {
-        // second message
-        let mut message = MRTMessage::from_reader(reader);
-        if let Err(e) = message {
-            eprintln!("Error reading MRT message: {}", e);
-            break;
-        }
-        let mut message = message.unwrap();
-        //let mut message_reader = Cursor::new(message.payload);
+    let mut writer = BufWriter::new(std::io::stdout());
+    while let Ok(mut message) = MRTMessage::from_reader(reader) {
+        // Match the message type and subtype
         match (message.header.mrt_type, message.header.mrt_subtype) {
             (MRTType::TableDumpV2, MRTSubType::RibIpV4Unicast) => read_rib_ipv4_unicast(
                 &mut message.payload,
+                &mut writer,
                 &peer_index_table,
                 message.header.ts,
                 arg,
-            )?,
+            )
+            .unwrap_or_else(|e| {
+                eprintln!("Error reading RIB IPv4 Unicast: {} skip the entry", e);
+            }),
             _ => {
                 return Err(Error::InvalidMrtType(
                     message.header.mrt_type,
@@ -78,11 +80,15 @@ fn read_table_dump_v2<R: Read>(
             }
         }
     }
+    writer.flush().unwrap();
     Ok(())
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    let mut args = Args::parse();
+    if args.json {
+        args.print = false;
+    }
     // open the file
     let mut file = open_file(&args.input_file).unwrap_or_else(|_| {
         eprintln!("Failed to open file: {}", args.input_file);

@@ -7,8 +7,12 @@ use strum_macros::FromRepr;
 #[derive(Debug, PartialEq, FromRepr, Clone, Copy)]
 #[repr(u16)]
 pub enum MRTSubType {
-    PeerIndexTable = 1, // Peer index type
-    RibIpV4Unicast = 2, // RIB IPv4 Unicast subtype
+    PeerIndexTable = 1,   // Peer index type
+    RibIpV4Unicast = 2,   // RIB IPv4 Unicast subtype
+    RibIpV4Multicast = 3, // RIB IPv4 Multicast subtype
+    RibIpV6Unicast = 4,   // RIB IPv6 Unicast subtype
+    RibIpV6Multicast = 5, // RIB IPv6 Multicast subtype
+    RibGeneric = 6,       // RIB Generic subtype
 }
 
 impl std::fmt::Display for MRTSubType {

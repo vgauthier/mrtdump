@@ -29,22 +29,21 @@ impl RibIpV4Unicast {
     ) -> Result<Self, Error> {
         let sequence_number = reader.read_u32::<BigEndian>()?;
         let prefix_len = reader.read_u8()?;
-        // Read the prefix for IPv4 addresses
-        // Compute Prefix length in bytes
+        // Read the prefix for IPv4 addresses :
+        // Compute Prefix length in bytes, the Prefix field contains address
+        // prefixes followed by enough trailing bits to make the end of the
+        // field fall on an octet boundary
         let prefix_len_bytes = prefix_len.div_ceil(8);
         let mut prefix_bytes = [0u8; 4];
         reader.read_exact(&mut prefix_bytes[..prefix_len_bytes as usize])?;
         let prefix = Ipv4Addr::from(prefix_bytes);
         // Read the number of entries
         let entry_count = reader.read_u16::<BigEndian>()?;
-        // println!(
-        //     "sequence_number {}, prefix_len {}, prefix_len_bytes: {}, prefix {}/{}, num_entries {}",
-        //     sequence_number, prefix_len, prefix_len_bytes, prefix, prefix_len, entry_count
-        // );
         // read the rib entry
-        let mut rib_entries: Vec<RibEntry> = Vec::with_capacity(entry_count as usize);
+        let mut rib_entries: Vec<RibEntry> = Vec::with_capacity(entry_count.into());
         for _ in 0..entry_count {
-            rib_entries.push(RibEntry::from_reader(reader, peer_index_table)?);
+            let entry = RibEntry::from_reader(reader, peer_index_table)?;
+            rib_entries.push(entry);
         }
         Ok(RibIpV4Unicast {
             time,

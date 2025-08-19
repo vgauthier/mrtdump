@@ -38,12 +38,16 @@ impl RibEntry {
         let peer_index = reader.read_u16::<BigEndian>()?;
         let originated_time = reader.read_u32::<BigEndian>()?;
         let originated_time =
-            DateTime::from_timestamp(originated_time as i64, 0).ok_or(Error::BadMrtHeader)?;
+            DateTime::from_timestamp(originated_time.into(), 0).ok_or(Error::BadMrtHeader)?;
         let attribute_length = reader.read_u16::<BigEndian>()?;
-        // println!(
-        //     "peer_index {}, originated_time {}, attribute_length {}",
-        //     peer_index, originated_time, attribute_length
-        // );
+
+        if peer_index as usize >= peer_index_table.entries.len() {
+            // eprintln!(
+            //     "Invalid peer index: originated_time: {}, attribute_length: {}",
+            //     originated_time, attribute_length
+            // );
+            return Err(Error::InvalidPeerIndex(peer_index));
+        }
         // Here you would typically read the attributes based on the attribute_length
         let mut rib_entry = RibEntry {
             peer_index,
@@ -92,7 +96,7 @@ impl RibEntry {
                 _ => {
                     // skip unimplemented attributes
                     copy(
-                        &mut reader.take(header.attribute_length as u64),
+                        &mut reader.take(header.attribute_length.into()),
                         &mut sink(),
                     )?;
                 }
