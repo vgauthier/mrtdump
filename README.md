@@ -19,6 +19,19 @@ The Rust implementation of bgpdump to exports the binary MRT format to a human-r
 # Usage
 
 ```bash 
+> mrtdump --help
+Read MRT binary files and format and print it in a human-readable format JSON/CSV/PRINT
+
+Usage: mrtdump [OPTIONS] <INPUT_FILE>
+
+Arguments:
+  <INPUT_FILE>  Input file path MRT format
+
+Options:
+  -p, --print    Multi-line, human-readable (the default)
+  -j, --json     Output in JSON format
+  -h, --help     Print help
+  -V, --version  Print version
 > mrtdump rib.20250701.0000
 TIME: 2025-07-01 00:00:00
 TYPE: TABLE_DUMP_V2/IPV4_UNICAST
