@@ -58,67 +58,69 @@ impl RibIpV4Unicast {
 
 impl Display for RibIpV4Unicast {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut entries = String::new();
         for entry in &self.rib_entries {
-            writeln!(f, "TIME: {}", self.time.format("%Y-%m-%d %H:%M:%S"))?;
-            writeln!(f, "TYPE: TABLE_DUMP_V2/IPV4_UNICAST")?;
-            writeln!(f, "PREFIX: {:?}/{:?}", self.prefix, self.prefix_len)?;
-            writeln!(f, "SEQUENCE: {}", self.sequence_number)?;
-            writeln!(f, "FROM: {:?} AS{:?}", entry.peer_ip, entry.peer_asn)?;
-            writeln!(
-                f,
-                "ORIGINATED: {}",
+            let mut entry_string = format!(
+                "TIME: {}\nTYPE: TABLE_DUMP_V2/IPV4_UNICAST\nPREFIX: {}/{}\nSEQUENCE: {}\nFROM: {} AS {}\nORIGINATED: {}\n",
+                self.time.format("%Y-%m-%d %H:%M:%S"),
+                self.prefix,
+                self.prefix_len,
+                self.sequence_number,
+                entry.peer_ip,
+                entry.peer_asn,
                 entry.originated_time.format("%Y-%m-%d %H:%M:%S")
-            )?;
+            );
             if let Some(origin) = &entry.bgp_origin {
-                writeln!(f, "ORIGIN: {}", origin)?;
+                entry_string.push_str(&format!("ORIGIN: {}\n", origin));
             }
             if let Some(as_path) = &entry.bgp_as_path {
-                writeln!(
-                    f,
-                    "ASPATH: {}",
+                entry_string.push_str(&format!(
+                    "ASPATH: {}\n",
                     as_path
                         .segments
                         .iter()
                         .map(|seg| seg.to_string())
                         .collect::<Vec<_>>()
                         .join(" ")
-                )?;
+                ));
             }
             if let Some(next_hop) = &entry.bgp_next_hop {
-                writeln!(f, "NEXT_HOP: {}", next_hop.0)?;
+                entry_string.push_str(&format!("NEXT_HOP: {}\n", next_hop.0));
             }
             if let Some(multi_exit_disc) = &entry.bgp_multi_exit_disc {
-                writeln!(f, "MULTI_EXIT_DISC: {}", multi_exit_disc.0)?;
+                entry_string.push_str(&format!("MULTI_EXIT_DISC: {}\n", multi_exit_disc.0));
             }
             if let Some(communities) = &entry.bgp_community {
-                writeln!(
-                    f,
-                    "COMMUNITIES: {}",
+                entry_string.push_str(&format!(
+                    "COMMUNITIES: {}\n",
                     communities
                         .0
                         .iter()
                         .map(|(asn, local)| format!("{}:{}", asn, local))
                         .collect::<Vec<_>>()
                         .join(" ")
-                )?;
+                ));
             }
             if let Some(communities) = &entry.bgp_large_community {
-                writeln!(
-                    f,
-                    "LARGE_COMMUNITY: {}",
+                entry_string.push_str(&format!(
+                    "LARGE_COMMUNITY: {}\n",
                     communities
                         .0
                         .iter()
                         .map(|(asn, local, global)| format!("{}:{}:{}", asn, local, global))
                         .collect::<Vec<_>>()
                         .join(" ")
-                )?;
+                ));
             }
             if let Some(aggregator) = &entry.bgp_aggregator {
-                writeln!(f, "AGGREGATOR: {} {}", aggregator.asn, aggregator.ip)?;
+                entry_string.push_str(&format!(
+                    "AGGREGATOR: {} {}\n",
+                    aggregator.asn, aggregator.ip
+                ));
             }
-            writeln!(f)?;
+            entries.push_str(&format!("{}\n", entry_string));
         }
+        writeln!(f, "{}", entries)?;
         Ok(())
     }
 }
