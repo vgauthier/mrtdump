@@ -28,6 +28,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          gh release create --generate-notes ./mrtdump/mrtdump#mrtdump
+          gh release create v0.1 --generate-notes ./mrtdump/mrtdump#mrtdump
 
      
