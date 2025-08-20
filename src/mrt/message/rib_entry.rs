@@ -42,10 +42,6 @@ impl RibEntry {
         let attribute_length = reader.read_u16::<BigEndian>()?;
 
         if peer_index as usize >= peer_index_table.entries.len() {
-            // eprintln!(
-            //     "Invalid peer index: originated_time: {}, attribute_length: {}",
-            //     originated_time, attribute_length
-            // );
             return Err(Error::InvalidPeerIndex(peer_index));
         }
         // Here you would typically read the attributes based on the attribute_length
@@ -102,7 +98,6 @@ impl RibEntry {
                 }
             }
         }
-        //println!("{:?}", rib_entry);
         Ok(rib_entry)
     }
 }

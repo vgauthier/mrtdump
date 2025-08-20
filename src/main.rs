@@ -16,7 +16,7 @@ use std::{
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(name = "mrtdump")]
-#[command(version = "0.1")]
+#[command(version = "0.1.3")]
 #[command(about = "Read MRT binary files and format and print it in a human-readable format JSON/CSV/MULTILINE", long_about = None)]
 struct Args {
     #[arg(short, long, default_value_t = true)]
@@ -30,12 +30,25 @@ struct Args {
     csv: bool,
     /// Input file path MRT format
     input_file: String,
+    #[arg(short, long)]
+    /// Optional Output file path
+    output_file: Option<String>,
 }
 
 fn open_file(path: &str) -> Result<BufReader<File>> {
     const BUFFER_SIZE: usize = 1024 * 1024; // 1MB
     let file = File::open(path)?;
     Ok(BufReader::with_capacity(BUFFER_SIZE, file))
+}
+
+fn gen_writer(file: &Option<String>) -> Result<Box<dyn std::io::Write>> {
+    match file {
+        Some(path) => {
+            let file = File::create(path)?;
+            Ok(Box::new(BufWriter::new(file)))
+        }
+        None => Ok(Box::new(BufWriter::new(std::io::stdout()))),
+    }
 }
 
 fn read_rib_ipv4_unicast<R: Read, W: Write>(
@@ -56,20 +69,20 @@ fn read_rib_ipv4_unicast<R: Read, W: Write>(
     Ok(())
 }
 
-fn read_table_dump_v2<B: BufRead>(
+fn read_table_dump_v2<B: BufRead, W: Write>(
     reader: &mut B,
+    writer: &mut W,
     peer_index_table: &mut Cursor<Vec<u8>>,
     arg: &Args,
 ) -> Result<()> {
     // Read the table dump v2
     let peer_index_table = PeerIndexTable::from_reader(peer_index_table)?;
-    let mut writer = BufWriter::new(std::io::stdout());
     while let Ok(mut message) = MRTMessage::from_reader(reader) {
         // Match the message type and subtype
         match (message.header.mrt_type, message.header.mrt_subtype) {
             (MRTType::TableDumpV2, MRTSubType::RibIpV4Unicast) => read_rib_ipv4_unicast(
                 &mut message.payload,
-                &mut writer,
+                writer,
                 &peer_index_table,
                 message.header.ts,
                 arg,
@@ -97,6 +110,8 @@ fn main() -> Result<()> {
         exit(1);
     });
 
+    let mut writer = gen_writer(&args.output_file)?;
+
     // Read the first message
     let mut message = MRTMessage::from_reader(&mut file)?;
 
@@ -104,10 +119,12 @@ fn main() -> Result<()> {
     match (message.header.mrt_type, message.header.mrt_subtype) {
         (MRTType::TableDumpV2, MRTSubType::PeerIndexTable) => {
             // Read the peer index table and print the subsequent messages associated to it
-            read_table_dump_v2(&mut file, &mut message.payload, &args).unwrap_or_else(|e| {
-                eprintln!("Error reading table dump v2, {}", e);
-                exit(1);
-            })
+            read_table_dump_v2(&mut file, &mut writer, &mut message.payload, &args).unwrap_or_else(
+                |e| {
+                    eprintln!("Error reading table dump v2, {}", e);
+                    exit(1);
+                },
+            )
         }
         (t1, t2) => {
             eprintln!(

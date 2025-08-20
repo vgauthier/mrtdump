@@ -22,7 +22,7 @@ The Rust implementation of bgpdump to exports the binary MRT format to a human-r
 
 ```bash 
 > mrtdump --help
-Read MRT binary files and format and print it in a human-readable format JSON/CSV/PRINT
+Read MRT binary files and format and print it in a human-readable format JSON/CSV/MULTILINE
 
 Usage: mrtdump [OPTIONS] <INPUT_FILE>
 
@@ -30,10 +30,13 @@ Arguments:
   <INPUT_FILE>  Input file path MRT format
 
 Options:
-  -p, --print    Multi-line, human-readable (the default)
-  -j, --json     Output in JSON format
-  -h, --help     Print help
-  -V, --version  Print version
+  -p, --print                      Multi-line, human-readable (the default)
+  -j, --json                       Output in JSON format
+  -c, --csv                        Output in CSV format
+  -o, --output-file <OUTPUT_FILE>  Optional Output file path
+  -h, --help                       Print help
+  -V, --version                    Print version
+  
 > mrtdump rib.20250701.0000
 TIME: 2025-07-01 00:00:00
 TYPE: TABLE_DUMP_V2/IPV4_UNICAST
@@ -62,12 +65,10 @@ COMMUNITIES: 34224:333
 ```
 
 ## TODOs
-* Better error handling
-* Implement CVS print option
+* ~~Better error handling~~
+* ~~Implement CVS print option~~
 * Implement a read from bzip, zip and gz file
-* Add option to output to a file
-
-
+* ~~Add option to output to a file~~
 
 ## Licence
 Licensed under the Apache License, Version 2.0
