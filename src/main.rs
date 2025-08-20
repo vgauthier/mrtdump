@@ -6,7 +6,7 @@ use mrt::{
     Error, MRTMessage, MRTSubType, MRTType, Result, message::PeerIndexTable,
     message::RibIpV4Unicast,
 };
-use serde_json::to_string_pretty;
+
 use std::{
     fs::File,
     io::{BufReader, BufWriter, Cursor, Read, prelude::*},
@@ -17,7 +17,7 @@ use std::{
 #[derive(Parser, Debug)]
 #[command(name = "mrtdump")]
 #[command(version = "0.1")]
-#[command(about = "Read MRT binary files and format and print it in a human-readable format JSON/CSV/PRINT", long_about = None)]
+#[command(about = "Read MRT binary files and format and print it in a human-readable format JSON/CSV/MULTILINE", long_about = None)]
 struct Args {
     #[arg(short, long, default_value_t = true)]
     /// Multi-line, human-readable (the default)
@@ -33,7 +33,7 @@ struct Args {
 }
 
 fn open_file(path: &str) -> Result<BufReader<File>> {
-    const BUFFER_SIZE: usize = 10 * 1024 * 1024; // 10 MB
+    const BUFFER_SIZE: usize = 1024 * 1024; // 1MB
     let file = File::open(path)?;
     Ok(BufReader::with_capacity(BUFFER_SIZE, file))
 }
@@ -47,7 +47,7 @@ fn read_rib_ipv4_unicast<R: Read, W: Write>(
 ) -> Result<()> {
     let rib_ipv4_unicast = RibIpV4Unicast::from_reader(reader, peer_index_table, timestamp)?;
     if arg.json {
-        writeln!(writer, "{}", to_string_pretty(&rib_ipv4_unicast)?)?;
+        rib_ipv4_unicast.write_json_records(writer)?;
     } else if arg.csv {
         rib_ipv4_unicast.write_csv_records(writer)?;
     } else {
@@ -85,7 +85,7 @@ fn read_table_dump_v2<B: BufRead>(
             }
         }
     }
-    writer.flush().unwrap();
+    writer.flush()?;
     Ok(())
 }
 

@@ -97,6 +97,12 @@ impl RibIpV4Unicast {
         csv_writer.flush()?;
         Ok(())
     }
+
+    pub fn write_json_records<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Error> {
+        let json = serde_json::to_string_pretty(self)?;
+        writeln!(writer, "{}", json)?;
+        Ok(())
+    }
 }
 
 impl Display for RibIpV4Unicast {
