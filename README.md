@@ -1,6 +1,9 @@
-[![codecov](https://codecov.io/github/vgauthier/mrtdump/graph/badge.svg?token=lYsxmBf6No)](https://codecov.io/github/vgauthier/mrtdump)
-
 # MRTDump
+
+[![codecov](https://codecov.io/github/vgauthier/mrtdump/graph/badge.svg?token=lYsxmBf6No)](https://codecov.io/github/vgauthier/mrtdump)
+[![Rust-Build](https://github.com/vgauthier/mrtdump/actions/workflows/rust.yml/badge.svg)](https://github.com/vgauthier/mrtdump/actions/workflows/rust.yml)
+
+*A tool for dumping MRT data*
 
 ## Introduction 
 The Rust implementation of bgpdump to exports the binary MRT format to a human-readable format. The MRT format is used to export routing protocol messages, state changes, and contents of the routing information base. It is defined in [RFC6396](https://doi.org/10.17487/rfc6396).
@@ -36,7 +39,7 @@ Options:
   -o, --output-file <OUTPUT_FILE>  Optional Output file path
   -h, --help                       Print help
   -V, --version                    Print version
-  
+
 > mrtdump rib.20250701.0000
 TIME: 2025-07-01 00:00:00
 TYPE: TABLE_DUMP_V2/IPV4_UNICAST
