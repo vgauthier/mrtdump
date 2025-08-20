@@ -1,10 +1,11 @@
 [package]
 name = "mrtdump"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 license = "Apache-2.0"
 description = "A tool for dumping MRT data"
 authors = ["Vincent Gauthier <vg@luxbulb.org>"]
+repository = "https://github.com/vgauthier/mrtdump"
 
 [dependencies]
 byteorder = "1.5.0"
@@ -17,3 +18,8 @@ serde_with = { version = "3.14.0", features = ["chrono"] }
 strum = "0.27.2"
 strum_macros = "0.27.2"
 thiserror = "2.0.14"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
