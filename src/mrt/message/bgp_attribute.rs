@@ -313,4 +313,15 @@ mod tests {
         assert_eq!(aggregator.asn, 1);
         assert_eq!(aggregator.ip, Ipv4Addr::new(1, 0, 0, 2));
     }
+
+    #[test]
+    fn test_reading_bgp_multi_exit_disk() {
+        let mut cursor = Cursor::new(vec![
+            0x00, 0x00, 0x00, 0x01, // metric
+        ]);
+        let multi_exit_disk = BgpMultiExitDisc::from_reader(&mut cursor);
+        assert!(multi_exit_disk.is_ok());
+        let multi_exit_disk = multi_exit_disk.unwrap();
+        assert_eq!(multi_exit_disk.0, 1);
+    }
 }
