@@ -23,5 +23,8 @@ jobs:
         with:
           name: mrtdump
           path: target/${{ matrix.BUILD_TARGET }}/mrtdump
+      - name: Publish built binary to GitHub releases
+        run: |
+          gh release create --generate-notes ./mrtdump/mrtdump#mrtdump
 
      
