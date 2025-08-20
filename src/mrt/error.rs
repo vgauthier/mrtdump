@@ -12,15 +12,15 @@ pub enum Error {
     #[error("Unable to parse MRT header")]
     BadMrtHeader,
     #[error("Error parsing BGP attribute number: {0}")]
-    ErrorParsingBgpAttribute(u8),
+    ParsingBgpAttribute(u8),
     #[error("Wrong MRT type or subtype")]
     InvalidMrtType(MRTType, MRTSubType),
     #[error("I/O error: {0}")]
     IO(#[from] std::io::Error),
     #[error("UTF-8 error: {0}")]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
+    FromUtf8(#[from] std::string::FromUtf8Error),
     #[error("Serde error: {0}")]
-    SerdeError(#[from] serde_json::Error),
+    Serde(#[from] serde_json::Error),
     #[error("Invalid peer index: {0}")]
     InvalidPeerIndex(u16),
     #[error("Invalid community length: {0}")]
@@ -28,5 +28,5 @@ pub enum Error {
     #[error("Invalid large community length: {0}")]
     InvalidLargeCommunityLength(u16),
     #[error("CSV error: {0}")]
-    CsvError(#[from] csv::Error),
+    CsvSerialization(#[from] csv::Error),
 }

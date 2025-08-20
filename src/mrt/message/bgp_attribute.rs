@@ -87,7 +87,7 @@ impl BgpAttributeHeader {
         };
         // parse bgp attribute
         let attribute_type = BgpAttributeType::from_repr(attribute_type)
-            .ok_or(Error::ErrorParsingBgpAttribute(attribute_type))?;
+            .ok_or(Error::ParsingBgpAttribute(attribute_type))?;
 
         Ok(BgpAttributeHeader {
             attribute_flag,

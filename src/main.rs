@@ -51,7 +51,7 @@ fn read_rib_ipv4_unicast<R: Read, W: Write>(
     } else if arg.csv {
         rib_ipv4_unicast.write_csv_records(writer)?;
     } else {
-        writeln!(writer, "{}", rib_ipv4_unicast.to_string())?;
+        writeln!(writer, "{}", rib_ipv4_unicast)?;
     }
     Ok(())
 }
