@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/github/vgauthier/mrtdump/graph/badge.svg?token=lYsxmBf6No)](https://codecov.io/github/vgauthier/mrtdump)
+
 # MRTDump
 
 ## Introduction 
