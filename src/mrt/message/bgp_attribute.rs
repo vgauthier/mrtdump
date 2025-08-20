@@ -152,6 +152,9 @@ impl BgpAggregator {
 
 impl BgpCommunity {
     pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self, Error> {
+        if length % 4 != 0 {
+            return Err(Error::InvalidCommunityLength(length));
+        }
         let community_count: usize = (length / 4).into();
         let mut community = Vec::with_capacity(community_count);
         for _ in 0..community_count {
@@ -165,6 +168,9 @@ impl BgpCommunity {
 
 impl BgpLargeCommunity {
     pub fn from_reader<R: Read>(reader: &mut R, length: u16) -> Result<Self, Error> {
+        if length % 12 != 0 {
+            return Err(Error::InvalidLargeCommunityLength(length));
+        }
         let community_count: usize = (length / 12).into();
         let mut community = Vec::with_capacity(community_count);
         for _ in 0..community_count {
@@ -240,5 +246,71 @@ mod tests {
         assert_eq!(as_path.segments.len(), 2);
         assert_eq!(as_path.segments[0], 1);
         assert_eq!(as_path.segments[1], 2);
+    }
+
+    #[test]
+    fn test_reading_bgp_next_hop() {
+        let mut cursor = Cursor::new(vec![
+            0x01, 0x00, 0x00, 0x00, // next_hop
+        ]);
+        let next_hop = BgpNextHop::from_reader(&mut cursor);
+        assert!(next_hop.is_ok());
+        let next_hop = next_hop.unwrap();
+        assert_eq!(next_hop.0, Ipv4Addr::new(1, 0, 0, 0));
+    }
+
+    #[test]
+    fn test_reading_bgp_community() {
+        let mut cursor = Cursor::new(vec![
+            0x00, 0x01, 0x00, 0x02, // community 1
+            0x00, 0x03, 0x00, 0x04, // community 2
+        ]);
+        let community = BgpCommunity::from_reader(&mut cursor, 8);
+        assert!(community.is_ok());
+        let community = community.unwrap();
+        assert_eq!(community.0.len(), 2);
+        assert_eq!(community.0[0], (1, 2));
+        assert_eq!(community.0[1], (3, 4));
+        // test wrong length
+        let community = BgpCommunity::from_reader(&mut cursor, 7);
+        assert!(community.is_err());
+        assert!(matches!(
+            community.unwrap_err(),
+            Error::InvalidCommunityLength(7)
+        ));
+    }
+
+    #[test]
+    fn test_reading_bgp_large_community() {
+        let mut cursor = Cursor::new(vec![
+            0x00, 0x00, 0x00, 0x01, // asn
+            0x00, 0x00, 0x00, 0x02, // local 1
+            0x00, 0x00, 0x00, 0x03, // local 2
+        ]);
+        let community = BgpLargeCommunity::from_reader(&mut cursor, 12);
+        assert!(community.is_ok());
+        let community = community.unwrap();
+        assert_eq!(community.0.len(), 1);
+        assert_eq!(community.0[0], (1, 2, 3));
+        // test wrong length
+        let community = BgpLargeCommunity::from_reader(&mut cursor, 7);
+        assert!(community.is_err());
+        assert!(matches!(
+            community.unwrap_err(),
+            Error::InvalidLargeCommunityLength(7)
+        ));
+    }
+
+    #[test]
+    fn test_reading_bgp_aggregator() {
+        let mut cursor = Cursor::new(vec![
+            0x00, 0x00, 0x00, 0x01, // asn
+            0x01, 0x00, 0x00, 0x02, // IP
+        ]);
+        let aggregator = BgpAggregator::from_reader(&mut cursor);
+        assert!(aggregator.is_ok());
+        let aggregator = aggregator.unwrap();
+        assert_eq!(aggregator.asn, 1);
+        assert_eq!(aggregator.ip, Ipv4Addr::new(1, 0, 0, 2));
     }
 }

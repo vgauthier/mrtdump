@@ -23,4 +23,8 @@ pub enum Error {
     SerdeError(#[from] serde_json::Error),
     #[error("Invalid peer index: {0}")]
     InvalidPeerIndex(u16),
+    #[error("Invalid community length: {0}")]
+    InvalidCommunityLength(u16),
+    #[error("Invalid large community length: {0}")]
+    InvalidLargeCommunityLength(u16),
 }
