@@ -16,7 +16,7 @@ pub enum BgpOriginType {
 #[allow(dead_code)]
 pub struct BgpMultiExitDisc(pub u32);
 
-#[derive(Debug, FromRepr, Display, Serialize)]
+#[derive(Debug, FromRepr, Display, Serialize, PartialEq)]
 #[repr(u8)]
 pub enum BgpAttributeType {
     Origin = 1,
@@ -181,5 +181,64 @@ impl BgpMultiExitDisc {
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let metric = reader.read_u32::<BigEndian>()?;
         Ok(BgpMultiExitDisc(metric))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn test_reading_bgp_attribute_header() {
+        let mut cursor = Cursor::new(vec![
+            0x10, 0x01, 0x00, 0x04, // BGP Attribute Header
+        ]);
+        let header = BgpAttributeHeader::from_reader(&mut cursor);
+        assert!(header.is_ok());
+        let header = header.unwrap();
+        assert_eq!(header.attribute_flag, 0x10);
+        assert_eq!(header.attribute_type, BgpAttributeType::Origin);
+        assert_eq!(header.attribute_length, 4);
+        assert_eq!(header.offset, 8);
+    }
+
+    #[test]
+    fn test_reading_bgp_attribute_header_not_extended_length() {
+        let mut cursor = Cursor::new(vec![
+            0x00, 0x01, 0x04, // BGP Attribute Header
+        ]);
+        let header = BgpAttributeHeader::from_reader(&mut cursor);
+        assert!(header.is_ok());
+        let header = header.unwrap();
+        assert_eq!(header.attribute_flag, 0x00);
+        assert_eq!(header.attribute_type, BgpAttributeType::Origin);
+        assert_eq!(header.attribute_length, 4);
+        assert_eq!(header.offset, 7);
+    }
+
+    #[test]
+    fn test_reading_bgp_wrong_attribute_header() {
+        let mut cursor = Cursor::new(vec![
+            0x10, 0x0a, 0x00, 0x04, // BGP Attribute Header
+        ]);
+        let header = BgpAttributeHeader::from_reader(&mut cursor);
+        assert!(header.is_err());
+    }
+
+    #[test]
+    fn test_reading_bgp_aspath() {
+        let mut cursor = Cursor::new(vec![
+            0x00, // segment_type
+            0x02, 0x00, 0x00, 0x00, // segment_count
+            0x01, 0x00, 0x00, 0x00, // segment_value
+            0x02, 0x00, 0x00, 0x00, // segment_value
+        ]);
+        let as_path = BgpAsPath::from_reader(&mut cursor);
+        assert!(as_path.is_ok());
+        let as_path = as_path.unwrap();
+        assert_eq!(as_path.segments.len(), 2);
+        assert_eq!(as_path.segments[0], 1);
+        assert_eq!(as_path.segments[1], 2);
     }
 }

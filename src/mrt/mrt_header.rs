@@ -81,7 +81,9 @@ mod tests {
             0, 0x01, // mrt_subtype
             0, 0, 0, 0, // length
         ]);
-        let header = MRTHeader::from_reader(&mut cursor).unwrap();
+        let header = MRTHeader::from_reader(&mut cursor);
+        assert!(header.is_ok());
+        let header = header.unwrap();
         assert_eq!(header.ts, DateTime::from_timestamp(0, 0).unwrap());
         assert_eq!(header.mrt_type, MRTType::TableDumpV2);
         assert_eq!(header.mrt_subtype, MRTSubType::PeerIndexTable);
@@ -98,9 +100,7 @@ mod tests {
         ]);
         let header = MRTHeader::from_reader(&mut cursor);
         assert!(header.is_err());
-        let error_msg = header.unwrap_err().to_string();
-        let expected_error = Error::BadMrtType(0x13).to_string();
-        assert_eq!(error_msg, expected_error);
+        assert!(matches!(header.unwrap_err(), Error::BadMrtType(0x13)));
     }
 
     #[test]
@@ -108,13 +108,11 @@ mod tests {
         let mut cursor = Cursor::new(vec![
             0, 0, 0, 0, // ts
             0, 0x0d, // mrt_type
-            0, 0x05, // mrt_subtype
+            0, 0x08, // mrt_subtype
             0, 0, 0, 0, // length
         ]);
         let header = MRTHeader::from_reader(&mut cursor);
         assert!(header.is_err());
-        let error_msg = header.unwrap_err().to_string();
-        let expected_error = Error::BadMrtSubtype(0x05).to_string();
-        assert_eq!(error_msg, expected_error);
+        assert!(matches!(header.unwrap_err(), Error::BadMrtSubtype(0x08)));
     }
 }
