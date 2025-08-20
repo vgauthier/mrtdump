@@ -25,6 +25,9 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     /// Output in JSON format
     json: bool,
+    /// Output in CSV format
+    #[arg(short, long, default_value_t = false)]
+    csv: bool,
     /// Input file path MRT format
     input_file: String,
 }
@@ -45,7 +48,9 @@ fn read_rib_ipv4_unicast<R: Read, W: Write>(
     let rib_ipv4_unicast = RibIpV4Unicast::from_reader(reader, peer_index_table, timestamp)?;
     if arg.json {
         writeln!(writer, "{}", to_string_pretty(&rib_ipv4_unicast)?)?;
-    } else if arg.print {
+    } else if arg.csv {
+        rib_ipv4_unicast.write_csv_records(writer)?;
+    } else {
         writeln!(writer, "{}", rib_ipv4_unicast.to_string())?;
     }
     Ok(())
@@ -85,10 +90,7 @@ fn read_table_dump_v2<B: BufRead>(
 }
 
 fn main() -> Result<()> {
-    let mut args = Args::parse();
-    if args.json {
-        args.print = false;
-    }
+    let args = Args::parse();
     // open the file
     let mut file = open_file(&args.input_file).unwrap_or_else(|_| {
         eprintln!("Failed to open file: {}", args.input_file);

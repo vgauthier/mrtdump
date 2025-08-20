@@ -7,7 +7,21 @@ use serde::Serialize;
 use serde_with::serde_as;
 use std::fmt::{self, Display};
 use std::io::Read;
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
+
+#[serde_as]
+#[derive(Debug, Serialize)]
+#[allow(dead_code)]
+struct CsvRecord {
+    record_type: String,
+    datetime: DateTime<chrono::Utc>,
+    entry_type: String,
+    peer_ip: IpAddr,
+    peer_asn: u32,
+    prefix_with_len: String,
+    as_path: String,
+    bgp_origin: String,
+}
 
 #[serde_as]
 #[derive(Debug, Serialize)]
@@ -53,6 +67,35 @@ impl RibIpV4Unicast {
             entry_count,
             rib_entries,
         })
+    }
+
+    pub fn write_csv_records<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Error> {
+        let mut csv_writer = csv::WriterBuilder::new()
+            .delimiter(b'|')
+            .has_headers(false)
+            .from_writer(writer);
+        for entry in &self.rib_entries {
+            csv_writer.serialize(CsvRecord {
+                record_type: "TABLE_DUMP2".to_string(),
+                datetime: self.time,
+                entry_type: "B".to_string(),
+                peer_ip: entry.peer_ip,
+                peer_asn: entry.peer_asn,
+                prefix_with_len: format!("{}/{}", self.prefix, self.prefix_len),
+                as_path: entry
+                    .bgp_as_path
+                    .as_ref()
+                    .unwrap()
+                    .segments
+                    .iter()
+                    .map(|seg| seg.to_string())
+                    .collect::<Vec<_>>()
+                    .join(" "),
+                bgp_origin: entry.bgp_origin.as_ref().unwrap().to_string(),
+            })?;
+        }
+        csv_writer.flush()?;
+        Ok(())
     }
 }
 

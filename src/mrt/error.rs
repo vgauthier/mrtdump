@@ -27,4 +27,6 @@ pub enum Error {
     InvalidCommunityLength(u16),
     #[error("Invalid large community length: {0}")]
     InvalidLargeCommunityLength(u16),
+    #[error("CSV error: {0}")]
+    CsvError(#[from] csv::Error),
 }
