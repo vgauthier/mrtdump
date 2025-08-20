@@ -12,6 +12,7 @@ jobs:
         BUILD_TARGET: [release]
     outputs:
       release_built: ${{ steps.set-output.outputs.release_built }}
+    
     steps:
       - uses: actions/checkout@v4
       - name: Build binaries in "${{ matrix.BUILD_TARGET }}" mode
