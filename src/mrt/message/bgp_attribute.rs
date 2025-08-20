@@ -86,7 +86,6 @@ impl BgpAttributeHeader {
             4 + attribute_length
         };
         // parse bgp attribute
-        // todo!() provide a good error case
         let attribute_type = BgpAttributeType::from_repr(attribute_type)
             .ok_or(Error::ErrorParsingBgpAttribute(attribute_type))?;
 
@@ -137,7 +136,6 @@ impl BgpNextHop {
         let mut next_hop_bytes = [0u8; 4];
         reader.read_exact(&mut next_hop_bytes)?;
         let ip = Ipv4Addr::from(next_hop_bytes);
-        //Ok(BgpNextHop { ip })
         Ok(BgpNextHop(ip))
     }
 }
