@@ -133,7 +133,7 @@ mod tests {
         let mut cursor = Cursor::new(vec![
             0x00, 0x00, // Peer index
             0x00, 0x00, 0x00, 0x01, // Originated time
-            0x00, 0x1d, // attributes length 29
+            0x00, 0x29, // attributes length 41
             0x10, 0x01, 0x00, 0x01, // BGP Header type=1 (origin) length=1
             0x00, // Origin IGP
             0x10, 0x02, 0x00, 0x0a, // BGP Header type=2 (aspath) length=10
@@ -145,6 +145,9 @@ mod tests {
             0x00, // No data
             0x10, 0x03, 0x00, 0x04, // BGP Header type=3 (next_hop) length=4
             0xC0, 0x00, 0x02, 0x01, // Next Hop IP
+            0x10, 0x08, 0x00, 0x08, // BGP Header type=8 (community) length=8
+            0x00, 0x01, 0x00, 0x02, // community 1
+            0x00, 0x03, 0x00, 0x04, // community 2
         ]);
 
         let rib_entry = RibEntry::from_reader(&mut cursor, &peer_index_table);
@@ -158,10 +161,17 @@ mod tests {
         let segments = rib_entry.bgp_as_path.unwrap().segments;
         let expected_segments = vec![1, 2];
         assert_eq!(segments, expected_segments);
+
         let _expected_next_hop = BgpNextHop(Ipv4Addr::new(192, 0, 2, 1));
         assert!(matches!(
             rib_entry.bgp_next_hop.unwrap(),
             _expected_next_hop
+        ));
+
+        let _expected_community = BgpCommunity(vec![(1, 2), (3, 4)]);
+        assert!(matches!(
+            rib_entry.bgp_community.unwrap(),
+            _expected_community
         ));
     }
 }
