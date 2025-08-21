@@ -70,7 +70,7 @@ COMMUNITIES: 34224:333
 ## TODOs
 * ~~Better error handling~~
 * ~~Implement CVS print option~~
-* Implement a read from bzip, zip and gz file
+* ~~Implement a read from bzip, zip and gz file~~
 * ~~Add option to output to a file~~
 
 ## Licence
