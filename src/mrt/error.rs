@@ -29,4 +29,6 @@ pub enum Error {
     InvalidLargeCommunityLength(u16),
     #[error("CSV error: {0}")]
     CsvSerialization(#[from] csv::Error),
+    #[error("Bad RIB entry header")]
+    BadRibEntryHeader,
 }

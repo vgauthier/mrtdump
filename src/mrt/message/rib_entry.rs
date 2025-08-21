@@ -38,13 +38,14 @@ impl RibEntry {
         let peer_index = reader.read_u16::<BigEndian>()?;
         let originated_time = reader.read_u32::<BigEndian>()?;
         let originated_time =
-            DateTime::from_timestamp(originated_time.into(), 0).ok_or(Error::BadMrtHeader)?;
+            DateTime::from_timestamp(originated_time.into(), 0).ok_or(Error::BadRibEntryHeader)?;
         let attribute_length = reader.read_u16::<BigEndian>()?;
 
         // Validate peer index
         if peer_index as usize >= peer_index_table.entries.len() {
             return Err(Error::InvalidPeerIndex(peer_index));
         }
+
         // Create a new RibEntry instance
         let mut rib_entry = RibEntry {
             peer_index,
