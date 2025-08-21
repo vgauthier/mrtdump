@@ -105,7 +105,7 @@ impl RibIpV4Unicast {
     }
 
     pub fn write_multiline_records<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Error> {
-        writeln!(writer, "{}", self.to_string())?;
+        writeln!(writer, "{}", self)?;
         Ok(())
     }
 }
