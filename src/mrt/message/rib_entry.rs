@@ -44,7 +44,7 @@ impl RibEntry {
         if peer_index as usize >= peer_index_table.entries.len() {
             return Err(Error::InvalidPeerIndex(peer_index));
         }
-        // Here you would typically read the attributes based on the attribute_length
+        // Create a new RibEntry instance
         let mut rib_entry = RibEntry {
             peer_index,
             originated_time,

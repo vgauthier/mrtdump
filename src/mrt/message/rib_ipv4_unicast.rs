@@ -103,6 +103,11 @@ impl RibIpV4Unicast {
         writeln!(writer, "{}", json)?;
         Ok(())
     }
+
+    pub fn write_multiline_records<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Error> {
+        writeln!(writer, "{}", self.to_string())?;
+        Ok(())
+    }
 }
 
 impl Display for RibIpV4Unicast {

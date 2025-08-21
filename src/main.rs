@@ -10,14 +10,15 @@ use mrt::{
 use std::{
     fs::File,
     io::{BufReader, BufWriter, Cursor, Read, prelude::*},
+    path::Path,
     process::exit,
 };
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(name = "mrtdump")]
-#[command(version = "0.1.3")]
-#[command(about = "Read MRT binary files and format and print it in a human-readable format JSON/CSV/MULTILINE", long_about = None)]
+#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(about = "Read MRT binary files (*, .gz, .bz2) and format and print it in a human-readable format JSON/CSV/MULTILINE", long_about = None)]
 struct Args {
     #[arg(short, long, default_value_t = true)]
     /// Multi-line, human-readable (the default)
@@ -28,17 +29,42 @@ struct Args {
     /// Output in CSV format
     #[arg(short, long, default_value_t = false)]
     csv: bool,
-    /// Input file path MRT format
+    /// Input file path MRT format *.gz, *.bz2 or raw
     input_file: String,
     #[arg(short, long)]
     /// Optional Output file path
     output_file: Option<String>,
 }
 
-fn open_file(path: &str) -> Result<BufReader<File>> {
-    const BUFFER_SIZE: usize = 1024 * 1024; // 1MB
-    let file = File::open(path)?;
-    Ok(BufReader::with_capacity(BUFFER_SIZE, file))
+fn open_file_without_extension(filename: &str, capacity: usize) -> Result<Box<dyn Read>> {
+    let file = File::open(filename)?;
+    Ok(Box::new(BufReader::with_capacity(capacity, file)))
+}
+
+fn open_file_gz(filename: &str) -> Result<Box<dyn Read>> {
+    let file = File::open(filename)?;
+    let decoder = flate2::read::GzDecoder::new(file);
+    Ok(Box::new(decoder))
+}
+
+fn open_file_bz2(filename: &str) -> Result<Box<dyn Read>> {
+    let bz2 = File::open(filename)?;
+    let decoder = bzip2::read::BzDecoder::new(bz2);
+    Ok(Box::new(decoder))
+}
+
+fn open_file(filename: &str) -> Result<Box<dyn Read>> {
+    const BUFFER_SIZE: usize = 1024 * 1024; // 1 MB buffer size
+    let file_ext = Path::new(&filename).extension();
+    if file_ext.is_none() {
+        return open_file_without_extension(filename, BUFFER_SIZE);
+    }
+
+    match file_ext.unwrap().to_str() {
+        Some("gz") => open_file_gz(filename),
+        Some("bz2") => open_file_bz2(filename),
+        _ => open_file_without_extension(filename, BUFFER_SIZE),
+    }
 }
 
 fn gen_writer(file: &Option<String>) -> Result<Box<dyn std::io::Write>> {
@@ -64,13 +90,13 @@ fn read_rib_ipv4_unicast<R: Read, W: Write>(
     } else if arg.csv {
         rib_ipv4_unicast.write_csv_records(writer)?;
     } else {
-        writeln!(writer, "{}", rib_ipv4_unicast)?;
+        rib_ipv4_unicast.write_multiline_records(writer)?;
     }
     Ok(())
 }
 
-fn read_table_dump_v2<B: BufRead, W: Write>(
-    reader: &mut B,
+fn read_table_dump_v2<R: Read, W: Write>(
+    reader: &mut R,
     writer: &mut W,
     peer_index_table: &mut Cursor<Vec<u8>>,
     arg: &Args,
